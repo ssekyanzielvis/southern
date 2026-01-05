@@ -70,7 +70,9 @@ export default function ContactPage() {
   const onSubmit = async (data: ContactFormData) => {
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('contact_submissions').insert([data]);
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert([data as any]);
 
       if (error) throw error;
 
