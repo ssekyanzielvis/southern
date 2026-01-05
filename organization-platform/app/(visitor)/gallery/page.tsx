@@ -104,11 +104,11 @@ export default function GalleryPage() {
         )}
         
         {/* Gallery Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {filteredImages.map((item) => (
             <div
               key={item.id}
-              className="relative aspect-square group overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow"
+              className="relative h-[500px] group overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow"
             >
               {item.media_type === 'video' ? (
                 <video
@@ -125,8 +125,8 @@ export default function GalleryPage() {
                 />
               )}
               {item.description && (
-                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
-                  <p className="text-white text-center text-sm">{item.description}</p>
+                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6">
+                  <p className="text-white text-center text-base md:text-lg font-medium">{item.description}</p>
                 </div>
               )}
             </div>

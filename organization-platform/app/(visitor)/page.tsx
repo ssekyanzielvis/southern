@@ -137,26 +137,29 @@ export default function HomePage() {
         <section className="py-16 px-4 bg-white">
           <div className="container mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">About Us</h2>
-            <div className="max-w-3xl mx-auto">
+            <div className="relative w-[80vw] h-[80vh] mx-auto rounded-lg overflow-hidden shadow-2xl">
               {about[0].image_url && (
-                <div className="relative w-full h-64 md:h-96 mb-6 rounded-lg overflow-hidden">
-                  <Image
-                    src={about[0].image_url}
-                    alt="About Us"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+                <Image
+                  src={about[0].image_url}
+                  alt="About Us"
+                  fill
+                  className="object-cover"
+                />
               )}
-              <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                {about[0].description}
-              </p>
-              <Link
-                href="/about"
-                className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold"
-              >
-                Learn More <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
+              {/* Description overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-center p-8 md:p-12">
+                <div className="text-center max-w-4xl">
+                  <p className="text-white text-lg md:text-2xl leading-relaxed mb-6">
+                    {about[0].description}
+                  </p>
+                  <Link
+                    href="/about"
+                    className="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition-colors"
+                  >
+                    Learn More <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -245,7 +248,7 @@ export default function HomePage() {
         <section className="py-16 px-4 bg-white">
           <div className="container mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our Programs</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 max-w-7xl mx-auto">
               {programs.map((program) => (
                 <ImageCard
                   key={program.id}
@@ -272,7 +275,7 @@ export default function HomePage() {
         <section className="py-16 px-4 bg-gray-50">
           <div className="container mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our Achievements</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 max-w-7xl mx-auto">
               {achievements.map((achievement) => (
                 <ImageCard
                   key={achievement.id}
@@ -299,7 +302,7 @@ export default function HomePage() {
         <section className="py-16 px-4 bg-white">
           <div className="container mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our Core Values</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 max-w-7xl mx-auto">
               {coreValues.map((value) => (
                 <ImageCard
                   key={value.id}

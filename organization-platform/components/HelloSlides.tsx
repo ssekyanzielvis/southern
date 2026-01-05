@@ -14,10 +14,21 @@ interface Slide {
 export default function HelloSlides() {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     fetchSlides();
   }, []);
+
+  useEffect(() => {
+    if (slides.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [slides.length]);
 
   const fetchSlides = async () => {
     try {
@@ -38,7 +49,7 @@ export default function HelloSlides() {
 
   if (loading) {
     return (
-      <div className="w-full h-64 md:h-96 bg-gray-200 animate-pulse"></div>
+      <div className="w-[98vw] h-[98vh] mx-auto bg-gray-200 animate-pulse"></div>
     );
   }
 
@@ -46,40 +57,50 @@ export default function HelloSlides() {
     return null;
   }
 
-  // Determine the animation class based on first slide's direction
-  const animationClass = slides.length > 0 && slides[0].direction === 'right' 
-    ? 'animate-scroll-right' 
-    : 'animate-scroll-left';
-
   return (
-    <section className="w-full overflow-hidden bg-gray-100 py-8">
-      <div className="relative">
-        {/* Scrolling Container */}
-        <div className={`flex gap-6 ${animationClass} hover:pause-animation`}>
-          {/* Duplicate slides for infinite scroll effect */}
-          {[...slides, ...slides, ...slides].map((slide, index) => (
-            <div
-              key={`${slide.id}-${index}`}
-              className="relative flex-shrink-0 w-80 h-64 md:w-96 md:h-80 rounded-lg overflow-hidden shadow-lg group"
-            >
-              <Image
-                src={slide.image_url || '/placeholder.jpg'}
-                alt={slide.description || 'Slide image'}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-110"
-              />
-              
-              {/* Description overlay on hover */}
-              {slide.description && (
-                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6">
-                  <p className="text-white text-center text-sm md:text-base">
-                    {slide.description}
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
+    <section className="w-[98vw] h-[98vh] mx-auto overflow-hidden bg-gray-100 relative">
+      {slides.map((slide, index) => (
+        <div
+          key={slide.id}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            index === currentIndex ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <div className="relative w-full h-full">
+            <Image
+              src={slide.image_url || '/placeholder.jpg'}
+              alt={slide.description || 'Slide image'}
+              fill
+              className="object-cover"
+              priority={index === 0}
+            />
+            
+            {/* Description always visible at bottom */}
+            {slide.description && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-8">
+                <p className="text-white text-center text-xl md:text-3xl font-semibold">
+                  {slide.description}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
+      ))}
+
+      {/* Slide indicators */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`w-3 h-3 rounded-full transition-all ${
+              index === currentIndex
+                ? 'bg-white w-8'
+                : 'bg-white/50 hover:bg-white/75'
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
       </div>
     </section>
   );

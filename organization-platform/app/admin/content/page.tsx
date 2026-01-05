@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/lib/supabase/types';
-import { Save, Image as ImageIcon } from 'lucide-react';
+import { Save, Image as ImageIcon, Edit, Trash2 } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import FileUpload from '@/components/FileUpload';
 import { useNotification } from '@/lib/store';
@@ -22,7 +22,8 @@ export default function ContentManagement() {
 
   // About Us
   const [aboutItems, setAboutItems] = useState<AboutUs[]>([]);
-  const [aboutForm, setAboutForm] = useState({ content: '', image_url: '' });
+  const [aboutForm, setAboutForm] = useState({ description: '', image_url: '' });
+  const [editingAboutId, setEditingAboutId] = useState<string | null>(null);
 
   // Vision
   const [vision, setVision] = useState<Vision | null>(null);
@@ -35,6 +36,7 @@ export default function ContentManagement() {
   // Objectives
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [objectiveForm, setObjectiveForm] = useState({ statement: '', image_url: '' });
+  const [editingObjectiveId, setEditingObjectiveId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAllContent();
@@ -131,26 +133,55 @@ export default function ContentManagement() {
   };
 
   const handleAddAbout = async () => {
-    if (!aboutForm.content) return;
+    if (!aboutForm.description) return;
 
     setLoading(true);
     try {
-      const maxOrder = aboutItems.length > 0 ? Math.max(...aboutItems.map((a) => a.order_index)) : 0;
-      const { error } = await supabase.from('about_us').insert({
-        content: aboutForm.content,
-        image_url: aboutForm.image_url,
-        order_index: maxOrder + 1,
-      });
+      if (editingAboutId) {
+        // Update existing about section
+        const { error } = await supabase
+          .from('about_us')
+          .update({
+            description: aboutForm.description,
+            image_url: aboutForm.image_url,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingAboutId);
 
-      if (error) throw error;
-      showNotification('About section added successfully', 'success');
-      setAboutForm({ content: '', image_url: '' });
+        if (error) throw error;
+        showNotification('About section updated successfully', 'success');
+      } else {
+        // Add new about section
+        const maxOrder = aboutItems.length > 0 ? Math.max(...aboutItems.map((a) => a.order_index)) : 0;
+        const { error } = await supabase.from('about_us').insert({
+          description: aboutForm.description,
+          image_url: aboutForm.image_url,
+          order_index: maxOrder + 1,
+        });
+
+        if (error) throw error;
+        showNotification('About section added successfully', 'success');
+      }
+      
+      setAboutForm({ description: '', image_url: '' });
+      setEditingAboutId(null);
       fetchAllContent();
     } catch (error: any) {
       showNotification(error.message, 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditAbout = (item: AboutUs) => {
+    setEditingAboutId(item.id);
+    setAboutForm({ description: item.description, image_url: item.image_url || '' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEditAbout = () => {
+    setEditingAboutId(null);
+    setAboutForm({ description: '', image_url: '' });
   };
 
   const handleDeleteAbout = async (id: string) => {
@@ -172,23 +203,52 @@ export default function ContentManagement() {
 
     setLoading(true);
     try {
-      const maxOrder =
-        objectives.length > 0 ? Math.max(...objectives.map((o) => o.order_index)) : 0;
-      const { error } = await supabase.from('objectives').insert({
-        statement: objectiveForm.statement,
-        image_url: objectiveForm.image_url,
-        order_index: maxOrder + 1,
-      });
+      if (editingObjectiveId) {
+        // Update existing objective
+        const { error } = await supabase
+          .from('objectives')
+          .update({
+            statement: objectiveForm.statement,
+            image_url: objectiveForm.image_url,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingObjectiveId);
 
-      if (error) throw error;
-      showNotification('Objective added successfully', 'success');
+        if (error) throw error;
+        showNotification('Objective updated successfully', 'success');
+      } else {
+        // Add new objective
+        const maxOrder =
+          objectives.length > 0 ? Math.max(...objectives.map((o) => o.order_index)) : 0;
+        const { error } = await supabase.from('objectives').insert({
+          statement: objectiveForm.statement,
+          image_url: objectiveForm.image_url,
+          order_index: maxOrder + 1,
+        });
+
+        if (error) throw error;
+        showNotification('Objective added successfully', 'success');
+      }
+      
       setObjectiveForm({ statement: '', image_url: '' });
+      setEditingObjectiveId(null);
       fetchAllContent();
     } catch (error: any) {
       showNotification(error.message, 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditObjective = (obj: Objective) => {
+    setEditingObjectiveId(obj.id);
+    setObjectiveForm({ statement: obj.statement, image_url: obj.image_url || '' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEditObjective = () => {
+    setEditingObjectiveId(null);
+    setObjectiveForm({ statement: '', image_url: '' });
   };
 
   const handleDeleteObjective = async (id: string) => {
@@ -300,13 +360,15 @@ export default function ContentManagement() {
       {activeTab === 'about' && (
         <div className="space-y-6">
           <div className="bg-white border rounded-lg p-6 max-w-2xl">
-            <h2 className="text-xl font-semibold mb-4">Add About Section</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {editingAboutId ? 'Edit About Section' : 'Add About Section'}
+            </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Content*</label>
+                <label className="block text-sm font-medium mb-1">Description*</label>
                 <textarea
-                  value={aboutForm.content}
-                  onChange={(e) => setAboutForm({ ...aboutForm, content: e.target.value })}
+                  value={aboutForm.description}
+                  onChange={(e) => setAboutForm({ ...aboutForm, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2"
                   rows={4}
                 />
@@ -319,13 +381,23 @@ export default function ContentManagement() {
                 label="About Us Image"
                 maxSizeMB={5}
               />
-              <button
-                onClick={handleAddAbout}
-                disabled={loading || !aboutForm.content}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Add Section
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAddAbout}
+                  disabled={loading || !aboutForm.description}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  {editingAboutId ? 'Update Section' : 'Add Section'}
+                </button>
+                {editingAboutId && (
+                  <button
+                    onClick={handleCancelEditAbout}
+                    className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -338,12 +410,22 @@ export default function ContentManagement() {
                 <div className="flex-1">
                   <p className="text-gray-700">{item.description}</p>
                 </div>
-                <button
-                  onClick={() => handleDeleteAbout(item.id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  Delete
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditAbout(item)}
+                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteAbout(item.id)}
+                    className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -353,7 +435,9 @@ export default function ContentManagement() {
       {activeTab === 'objectives' && (
         <div className="space-y-6">
           <div className="bg-white border rounded-lg p-6 max-w-2xl">
-            <h2 className="text-xl font-semibold mb-4">Add Objective</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {editingObjectiveId ? 'Edit Objective' : 'Add Objective'}
+            </h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Statement*</label>
@@ -372,13 +456,23 @@ export default function ContentManagement() {
                 label="Objective Image"
                 maxSizeMB={5}
               />
-              <button
-                onClick={handleAddObjective}
-                disabled={loading || !objectiveForm.statement}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Add Objective
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAddObjective}
+                  disabled={loading || !objectiveForm.statement}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  {editingObjectiveId ? 'Update Objective' : 'Add Objective'}
+                </button>
+                {editingObjectiveId && (
+                  <button
+                    onClick={handleCancelEditObjective}
+                    className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -391,12 +485,22 @@ export default function ContentManagement() {
                 <div className="flex-1">
                   <p className="text-gray-700">{obj.statement}</p>
                 </div>
-                <button
-                  onClick={() => handleDeleteObjective(obj.id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  Delete
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditObjective(obj)}
+                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteObjective(obj.id)}
+                    className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>

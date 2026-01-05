@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,8 +20,17 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
+interface FooterData {
+  organization_name: string | null;
+  location: string | null;
+  director: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
 export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
+  const [footerData, setFooterData] = useState<FooterData | null>(null);
   const showNotification = useAppStore((state) => state.showNotification);
 
   const {
@@ -32,6 +41,31 @@ export default function ContactPage() {
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
   });
+
+  useEffect(() => {
+    fetchFooterData();
+  }, []);
+
+  const fetchFooterData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('footer_info')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching footer data:', error);
+        return;
+      }
+      
+      if (data) {
+        setFooterData(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch footer data:', error);
+    }
+  };
 
   const onSubmit = async (data: ContactFormData) => {
     setSubmitting(true);
@@ -68,21 +102,27 @@ export default function ContactPage() {
                   <Mail className="w-6 h-6 text-blue-600 mt-1" />
                   <div>
                     <h3 className="font-semibold">Email</h3>
-                    <p className="text-gray-600">contact@organization.com</p>
+                    <p className="text-gray-600">
+                      {footerData?.email || 'contact@organization.com'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
                   <Phone className="w-6 h-6 text-blue-600 mt-1" />
                   <div>
                     <h3 className="font-semibold">Phone</h3>
-                    <p className="text-gray-600">+256 000 000000</p>
+                    <p className="text-gray-600">
+                      {footerData?.phone || '+256 000 000000'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
                   <MapPin className="w-6 h-6 text-blue-600 mt-1" />
                   <div>
                     <h3 className="font-semibold">Location</h3>
-                    <p className="text-gray-600">Kampala, Uganda</p>
+                    <p className="text-gray-600">
+                      {footerData?.location || 'Kampala, Uganda'}
+                    </p>
                   </div>
                 </div>
               </div>

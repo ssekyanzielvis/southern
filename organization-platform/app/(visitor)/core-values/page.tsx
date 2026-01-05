@@ -53,7 +53,7 @@ export default function CoreValuesPage() {
           The principles that guide our work and define who we are.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {coreValues.map((value) => (
             <ImageCard
               key={value.id}

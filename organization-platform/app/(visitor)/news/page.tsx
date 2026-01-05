@@ -55,7 +55,7 @@ export default function NewsPage() {
           Stay updated with our latest news and announcements.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {news.map((item) => (
             <div key={item.id} className="space-y-2">
               <ImageCard
