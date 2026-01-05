@@ -38,12 +38,10 @@ export default function AboutPage() {
 
   const fetchAboutContent = async () => {
     try {
-      const [aboutData, visionData, missionData, objectivesData] = await Promise.all([
-        supabase.from('about_us').select('*').eq('is_active', true).order('order_index', { ascending: true }),
-        supabase.from('vision').select('*').eq('is_active', true).single(),
-        supabase.from('mission').select('*').eq('is_active', true).single(),
-        supabase.from('objectives').select('*').eq('is_active', true).order('order_index', { ascending: true }),
-      ]);
+      const aboutData = await supabase.from('about_us').select('*').eq('is_active', true).order('order_index', { ascending: true });
+      const visionData = await supabase.from('vision').select('*').eq('is_active', true).single();
+      const missionData = await supabase.from('mission').select('*').eq('is_active', true).single();
+      const objectivesData = await supabase.from('objectives').select('*').eq('is_active', true).order('order_index', { ascending: true });
 
       if (aboutData.data) setContent(aboutData.data);
       if (visionData.data) setVision(visionData.data);
