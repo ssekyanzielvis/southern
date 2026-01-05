@@ -24,13 +24,23 @@ export default function Footer() {
   }, []);
 
   const fetchFooterData = async () => {
-    const { data } = await supabase
-      .from('footer_info')
-      .select('*')
-      .single();
-    
-    if (data) {
-      setFooterData(data);
+    try {
+      const { data, error } = await supabase
+        .from('footer_info')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching footer data:', error);
+        return;
+      }
+      
+      if (data) {
+        setFooterData(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch footer data:', error);
     }
   };
 

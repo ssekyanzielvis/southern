@@ -12,7 +12,7 @@ interface FooterInfo {
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [orgName, setOrgName] = useState('Southern Organization');
+  const [orgName, setOrgName] = useState('Southern Hemisphere Organization');
   const theme = useAppStore((state) => state.theme);
 
   useEffect(() => {
