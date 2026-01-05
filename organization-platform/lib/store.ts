@@ -104,13 +104,15 @@ export const useAppStore = create<AppState>()(
   )
 );
 
-// Export individual slices for convenience  
-export const useNotification = () => useAppStore((state) => ({ 
-  showNotification: state.showNotification,
-  hideNotification: state.hideNotification 
-}));
+// Export individual selectors for convenience  
+export const useNotification = () => {
+  const showNotification = useAppStore((state) => state.showNotification);
+  const hideNotification = useAppStore((state) => state.hideNotification);
+  return { showNotification, hideNotification };
+};
 
-export const useTheme = () => useAppStore((state) => ({
-  theme: state.theme,
-  setTheme: state.setTheme
-}));
+export const useTheme = () => {
+  const theme = useAppStore((state) => state.theme);
+  const setTheme = useAppStore((state) => state.setTheme);
+  return { theme, setTheme };
+};

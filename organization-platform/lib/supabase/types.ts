@@ -62,28 +62,28 @@ export interface Database {
       theme_settings: {
         Row: {
           id: string;
-          backgroundColor: string;
-          textColor: string;
-          primaryColor: string;
-          fontFamily: string;
+          background_color: string;
+          text_color: string;
+          primary_color: string;
+          font_family: string;
           updated_at: string;
           updated_by: string | null;
         };
         Insert: {
           id?: string;
-          backgroundColor?: string;
-          textColor?: string;
-          primaryColor?: string;
-          fontFamily?: string;
+          background_color?: string;
+          text_color?: string;
+          primary_color?: string;
+          font_family?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
           id?: string;
-          backgroundColor?: string;
-          textColor?: string;
-          primaryColor?: string;
-          fontFamily?: string;
+          background_color?: string;
+          text_color?: string;
+          primary_color?: string;
+          font_family?: string;
           updated_at?: string;
           updated_by?: string | null;
         };

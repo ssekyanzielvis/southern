@@ -1,8 +1,8 @@
-import { Database } from '@/lib/supabase/types';
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { Database } from '@/lib/supabase/types';
 import { TrendingUp, Users, Eye, DollarSign } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -28,7 +28,7 @@ export default function Analytics() {
       const { data, error } = await supabase
         .from('analytics')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('visited_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;

@@ -1,4 +1,3 @@
-import { Database } from '@/lib/supabase/types';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,6 +6,7 @@ import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import FileUpload from '@/components/FileUpload';
 import { useNotification } from '@/lib/store';
+import { Database } from '@/lib/supabase/types';
 
 type Program = Database['public']['Tables']['programs']['Row'];
 

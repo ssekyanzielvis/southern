@@ -1,8 +1,8 @@
-import { Database } from '@/lib/supabase/types';
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { Database } from '@/lib/supabase/types';
 import { Save, RefreshCw } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useNotification, useTheme } from '@/lib/store';
@@ -33,18 +33,18 @@ export default function ThemeCustomization() {
       if (data) {
         setTheme(data);
         setFormData({
-          backgroundColor: data.backgroundColor,
-          textColor: data.textColor,
-          primaryColor: data.primaryColor,
-          fontFamily: data.fontFamily,
+          backgroundColor: data.background_color,
+          textColor: data.text_color,
+          primaryColor: data.primary_color,
+          fontFamily: data.font_family,
         });
         
         // Apply theme to store
         updateTheme({
-          backgroundColor: data.backgroundColor,
-          textColor: data.textColor,
-          primaryColor: data.primaryColor,
-          fontFamily: data.fontFamily,
+          backgroundColor: data.background_color,
+          textColor: data.text_color,
+          primaryColor: data.primary_color,
+          fontFamily: data.font_family,
         });
       }
     } catch (error: any) {
@@ -61,14 +61,22 @@ export default function ThemeCustomization() {
         const { error } = await supabase
           .from('theme_settings')
           .update({
-            ...formData,
+            background_color: formData.backgroundColor,
+            text_color: formData.textColor,
+            primary_color: formData.primaryColor,
+            font_family: formData.fontFamily,
             updated_at: new Date().toISOString(),
           })
           .eq('id', theme.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('theme_settings').insert(formData);
+        const { error } = await supabase.from('theme_settings').insert({
+          background_color: formData.backgroundColor,
+          text_color: formData.textColor,
+          primary_color: formData.primaryColor,
+          font_family: formData.fontFamily,
+        });
 
         if (error) throw error;
       }

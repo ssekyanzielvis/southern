@@ -1,8 +1,8 @@
-import { Database } from '@/lib/supabase/types';
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { Database } from '@/lib/supabase/types';
 import { Save, Image as ImageIcon } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import FileUpload from '@/components/FileUpload';

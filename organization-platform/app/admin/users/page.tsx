@@ -1,8 +1,8 @@
-import { Database } from '@/lib/supabase/types';
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { Database } from '@/lib/supabase/types';
 import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import FileUpload from '@/components/FileUpload';
@@ -14,6 +14,7 @@ export default function UsersManagement() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const { showNotification } = useNotification();
 
   const [formData, setFormData] = useState({
@@ -44,29 +45,70 @@ export default function UsersManagement() {
     }
   };
 
+  const handleEdit = (admin: Admin) => {
+    setEditingId(admin.id);
+    setFormData({
+      full_name: admin.full_name,
+      email: admin.email,
+      phone_number: admin.phone_number || '',
+      image_url: admin.image_url || '',
+      password: '', // Leave empty, only update if provided
+    });
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Hash password using SHA-256
-      const encoder = new TextEncoder();
-      const data = encoder.encode(formData.password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const password_hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+      if (editingId) {
+        // Update existing admin
+        const updateData: any = {
+          full_name: formData.full_name,
+          email: formData.email,
+          phone_number: formData.phone_number,
+          image_url: formData.image_url || null,
+          updated_at: new Date().toISOString(),
+        };
 
-      const { error } = await supabase.from('admins').insert({
-        full_name: formData.full_name,
-        email: formData.email,
-        phone_number: formData.phone_number,
-        image_url: formData.image_url || null,
-        password_hash,
-        is_active: true,
-      });
+        // Only update password if provided
+        if (formData.password) {
+          const encoder = new TextEncoder();
+          const data = encoder.encode(formData.password);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          updateData.password_hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+        }
 
-      if (error) throw error;
-      showNotification('Admin created successfully', 'success');
+        const { error } = await supabase
+          .from('admins')
+          .update(updateData)
+          .eq('id', editingId);
+
+        if (error) throw error;
+        showNotification('Admin updated successfully', 'success');
+      } else {
+        // Create new admin
+        const encoder = new TextEncoder();
+        const data = encoder.encode(formData.password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const password_hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
+        const { error } = await supabase.from('admins').insert({
+          full_name: formData.full_name,
+          email: formData.email,
+          phone_number: formData.phone_number,
+          image_url: formData.image_url || null,
+          password_hash,
+          is_active: true,
+        });
+
+        if (error) throw error;
+        showNotification('Admin created successfully', 'success');
+      }
+      
       resetForm();
       fetchAdmins();
     } catch (error: any) {
@@ -177,6 +219,13 @@ export default function UsersManagement() {
             </div>
             <div className="mt-4 flex gap-2">
               <button
+                onClick={() => handleEdit(admin)}
+                className="flex-1 bg-gray-50 text-gray-700 py-2 rounded-lg hover:bg-gray-100 text-sm flex items-center justify-center gap-1"
+              >
+                <Edit className="w-4 h-4" />
+                Edit
+              </button>
+              <button
                 onClick={() => handleToggleActive(admin.id, admin.is_active)}
                 className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 text-sm"
               >
@@ -184,9 +233,9 @@ export default function UsersManagement() {
               </button>
               <button
                 onClick={() => handleDelete(admin.id)}
-                className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 text-sm"
+                className="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 text-sm"
               >
-                Delete
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -196,7 +245,9 @@ export default function UsersManagement() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Add New Admin</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {editingId ? 'Edit Admin' : 'Add New Admin'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Full Name*</label>
@@ -236,16 +287,21 @@ export default function UsersManagement() {
                 maxSizeMB={2}
               />
               <div>
-                <label className="block text-sm font-medium mb-1">Password*</label>
+                <label className="block text-sm font-medium mb-1">
+                  Password{editingId ? '' : '*'}
+                </label>
                 <input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2"
-                  required
+                  required={!editingId}
                   minLength={6}
+                  placeholder={editingId ? 'Leave blank to keep current password' : ''}
                 />
-                <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {editingId ? 'Leave blank to keep current password' : 'Minimum 6 characters'}
+                </p>
               </div>
               <div className="flex gap-2">
                 <button
@@ -253,7 +309,7 @@ export default function UsersManagement() {
                   disabled={loading}
                   className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {loading ? 'Creating...' : 'Create Admin'}
+                  {loading ? (editingId ? 'Updating...' : 'Creating...') : (editingId ? 'Update Admin' : 'Create Admin')}
                 </button>
                 <button
                   type="button"

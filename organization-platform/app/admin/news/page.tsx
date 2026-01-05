@@ -1,8 +1,8 @@
-import { Database } from '@/lib/supabase/types';
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { Database } from '@/lib/supabase/types';
 import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import FileUpload from '@/components/FileUpload';
@@ -21,6 +21,7 @@ export default function NewsManagement() {
     title: '',
     description: '',
     image_url: '',
+    published_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
     is_active: true,
     is_featured: false,
   });
@@ -96,6 +97,7 @@ export default function NewsManagement() {
       title: '',
       description: '',
       image_url: '',
+      published_date: new Date().toISOString().split('T')[0],
       is_active: true,
       is_featured: false,
     });
@@ -109,6 +111,7 @@ export default function NewsManagement() {
       title: news.title,
       description: news.description || '',
       image_url: news.image_url || '',
+      published_date: news.published_date || new Date().toISOString().split('T')[0],
       is_active: news.is_active,
       is_featured: news.is_featured,
     });
@@ -198,6 +201,16 @@ export default function NewsManagement() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2"
                   rows={4}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Published Date*</label>
+                <input
+                  type="date"
+                  value={formData.published_date}
+                  onChange={(e) => setFormData({ ...formData, published_date: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2"
+                  required
                 />
               </div>
               <FileUpload

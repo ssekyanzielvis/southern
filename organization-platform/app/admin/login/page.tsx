@@ -34,6 +34,25 @@ export default function AdminLoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setSubmitting(true);
     try {
+      // Development superadmin bypass (remove in production)
+      const isDevelopmentSuperadmin = 
+        data.email === 'abdulssekyanzi@gmail.com' && 
+        data.password === 'Su4at3#0';
+
+      if (isDevelopmentSuperadmin) {
+        // Bypass authentication for development superadmin
+        setAdmin({
+          id: 'dev-superadmin-001',
+          email: 'abdulssekyanzi@gmail.com',
+          fullName: 'System Developer',
+          imageUrl: undefined,
+        });
+
+        showNotification('Development Superadmin Login Successful!', 'success');
+        router.push('/admin/dashboard');
+        return;
+      }
+
       // Hash the password to compare
       const passwordHash = await hashPassword(data.password);
 

@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
 import {
@@ -24,6 +23,7 @@ import {
   Palette,
   BarChart3,
   UserPlus,
+  ExternalLink,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -32,22 +32,35 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { admin, setAdmin, isSidebarOpen, toggleSidebar } = useAppStore();
-
-  useEffect(() => {
-    // Check if admin is authenticated
-    if (!admin) {
-      router.push('/admin/login');
-    }
-  }, [admin, router]);
 
   const handleLogout = () => {
     setAdmin(null);
     router.push('/admin/login');
   };
 
+  // If on login page, just render children without admin layout
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
+  // If not authenticated, show login prompt
   if (!admin) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-6">You need to be logged in to access the admin panel.</p>
+          <Link
+            href="/admin/login"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 inline-block"
+          >
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const navigation = [
@@ -84,17 +97,31 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="text-sm font-medium">{admin.fullName}</p>
-              <p className="text-xs text-gray-500">{admin.email}</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <LogOut size={18} />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
+            {admin && (
+              <>
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  title="View visitor site"
+                >
+                  <ExternalLink size={18} />
+                  <span className="hidden sm:inline">View Site</span>
+                </a>
+                <div className="text-right">
+                  <p className="text-sm font-medium">{admin.fullName}</p>
+                  <p className="text-xs text-gray-500">{admin.email}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <LogOut size={18} />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
