@@ -38,15 +38,34 @@ export default function AboutPage() {
 
   const fetchAboutContent = async () => {
     try {
-      const aboutData = await supabase.from('about_us').select('*').eq('is_active', true).order('order_index', { ascending: true });
-      const visionData = await supabase.from('vision').select('*').eq('is_active', true).single();
-      const missionData = await supabase.from('mission').select('*').eq('is_active', true).single();
-      const objectivesData = await supabase.from('objectives').select('*').eq('is_active', true).order('order_index', { ascending: true });
+      const { data: aboutData } = await supabase
+        .from('about_us')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
+      
+      const { data: visionData } = await supabase
+        .from('vision')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+      
+      const { data: missionData } = await supabase
+        .from('mission')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+      
+      const { data: objectivesData } = await supabase
+        .from('objectives')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
 
-      if (aboutData.data) setContent(aboutData.data);
-      if (visionData.data) setVision(visionData.data);
-      if (missionData.data) setMission(missionData.data);
-      if (objectivesData.data) setObjectives(objectivesData.data);
+      if (aboutData) setContent(aboutData);
+      if (visionData) setVision(visionData);
+      if (missionData) setMission(missionData);
+      if (objectivesData) setObjectives(objectivesData);
     } catch (error) {
       console.error('Error fetching about content:', error);
     } finally {
