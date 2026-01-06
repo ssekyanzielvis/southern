@@ -66,7 +66,7 @@ export default function DonationsManagement() {
 
   const handleExportCSV = () => {
     const csvData = donations.map((d) => ({
-      'Receipt Number': d.receipt_number,
+      'Receipt Number': d.receipt_number || d.payment_reference || `RCP-${new Date(d.created_at).toISOString().slice(0, 10).replace(/-/g, '')}-${d.id.slice(0, 5).toUpperCase()}`,
       'Donor Name': d.donor_name,
       Email: d.donor_email || '',
       Phone: d.donor_phone || '',
@@ -80,6 +80,9 @@ export default function DonationsManagement() {
   };
 
   const handlePrintReceipt = (donation: Donation) => {
+    // Generate receipt number if it doesn't exist
+    const receiptNumber = donation.receipt_number || donation.payment_reference || `RCP-${new Date(donation.created_at).toISOString().slice(0, 10).replace(/-/g, '')}-${donation.id.slice(0, 5).toUpperCase()}`;
+    
     const receiptWindow = window.open('', '_blank');
     if (!receiptWindow) return;
 
@@ -87,7 +90,7 @@ export default function DonationsManagement() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Donation Receipt - ${donation.receipt_number}</title>
+          <title>Donation Receipt - ${receiptNumber}</title>
           <style>
             body {
               font-family: Arial, sans-serif;
@@ -148,7 +151,7 @@ export default function DonationsManagement() {
           <div class="details">
             <div class="detail-row">
               <span class="detail-label">Receipt Number:</span>
-              <span>${donation.receipt_number}</span>
+              <span>${receiptNumber}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Date:</span>
@@ -243,7 +246,9 @@ export default function DonationsManagement() {
             <tbody className="divide-y">
               {donations.map((donation) => (
                 <tr key={donation.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-mono">{donation.receipt_number}</td>
+                  <td className="px-4 py-3 text-sm font-mono">
+                    {donation.receipt_number || donation.payment_reference || `RCP-${new Date(donation.created_at).toISOString().slice(0, 10).replace(/-/g, '')}-${donation.id.slice(0, 5).toUpperCase()}`}
+                  </td>
                   <td className="px-4 py-3 text-sm">{donation.donor_name}</td>
                   <td className="px-4 py-3 text-sm font-semibold">
                     UGX {donation.amount.toLocaleString()}
