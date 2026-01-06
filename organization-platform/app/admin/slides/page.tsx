@@ -30,8 +30,8 @@ export default function SlidesManagement() {
 
   const fetchSlides = async () => {
     try {
-      const { data, error } = await supabase
-        .from('hello_slides')
+      const { data, error } = await (supabase
+        .from('hello_slides') as any)
         .select('*')
         .order('order_index', { ascending: true });
 
@@ -50,8 +50,8 @@ export default function SlidesManagement() {
 
     try {
       if (editingSlide) {
-        const { error } = await supabase
-          .from('hello_slides')
+        const { error } = await (supabase
+          .from('hello_slides') as any)
           .update({
             image_url: formData.image_url,
             description: formData.description,
@@ -65,7 +65,7 @@ export default function SlidesManagement() {
         showNotification('Slide updated successfully', 'success');
       } else {
         const maxOrder = slides.length > 0 ? Math.max(...slides.map((s) => s.order_index)) : 0;
-        const { error } = await supabase.from('hello_slides').insert({
+        const { error } = await (supabase.from('hello_slides') as any).insert({
           image_url: formData.image_url,
           description: formData.description,
           direction: formData.direction,
@@ -90,7 +90,7 @@ export default function SlidesManagement() {
     if (!confirm('Are you sure you want to delete this slide?')) return;
 
     try {
-      const { error } = await supabase.from('hello_slides').delete().eq('id', id);
+      const { error } = await (supabase.from('hello_slides') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Slide deleted successfully', 'success');
@@ -123,8 +123,8 @@ export default function SlidesManagement() {
       }));
 
       for (const update of updates) {
-        await supabase
-          .from('hello_slides')
+        await (supabase
+          .from('hello_slides') as any)
           .update({ order_index: update.order_index })
           .eq('id', update.id);
       }

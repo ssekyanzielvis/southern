@@ -28,7 +28,7 @@ export default function ThemeCustomization() {
 
   const fetchTheme = async () => {
     try {
-      const { data, error } = await supabase.from('theme_settings').select('*').limit(1).single();
+      const { data, error } = await (supabase.from('theme_settings') as any).select('*').limit(1).single();
 
       if (data) {
         setTheme(data);
@@ -58,8 +58,8 @@ export default function ThemeCustomization() {
     setLoading(true);
     try {
       if (theme) {
-        const { error } = await supabase
-          .from('theme_settings')
+        const { error } = await (supabase
+          .from('theme_settings') as any)
           .update({
             background_color: formData.backgroundColor,
             text_color: formData.textColor,
@@ -71,7 +71,7 @@ export default function ThemeCustomization() {
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('theme_settings').insert({
+        const { error } = await (supabase.from('theme_settings') as any).insert({
           background_color: formData.backgroundColor,
           text_color: formData.textColor,
           primary_color: formData.primaryColor,

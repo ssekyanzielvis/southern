@@ -31,8 +31,8 @@ export default function UsersManagement() {
 
   const fetchAdmins = async () => {
     try {
-      const { data, error } = await supabase
-        .from('admins')
+      const { data, error } = await (supabase
+        .from('admins') as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -81,8 +81,8 @@ export default function UsersManagement() {
           updateData.password_hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
         }
 
-        const { error } = await supabase
-          .from('admins')
+        const { error } = await (supabase
+          .from('admins') as any)
           .update(updateData)
           .eq('id', editingId);
 
@@ -96,7 +96,7 @@ export default function UsersManagement() {
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const password_hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 
-        const { error } = await supabase.from('admins').insert({
+        const { error } = await (supabase.from('admins') as any).insert({
           full_name: formData.full_name,
           email: formData.email,
           phone_number: formData.phone_number,
@@ -120,8 +120,8 @@ export default function UsersManagement() {
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('admins')
+      const { error } = await (supabase
+        .from('admins') as any)
         .update({ is_active: !currentStatus })
         .eq('id', id);
 
@@ -138,7 +138,7 @@ export default function UsersManagement() {
       return;
 
     try {
-      const { error } = await supabase.from('admins').delete().eq('id', id);
+      const { error } = await (supabase.from('admins') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Admin deleted successfully', 'success');

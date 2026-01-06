@@ -31,8 +31,8 @@ export default function ProgramsManagement() {
 
   const fetchPrograms = async () => {
     try {
-      const { data, error } = await supabase
-        .from('programs')
+      const { data, error } = await (supabase
+        .from('programs') as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -51,8 +51,8 @@ export default function ProgramsManagement() {
 
     try {
       if (editingProgram) {
-        const { error } = await supabase
-          .from('programs')
+        const { error } = await (supabase
+          .from('programs') as any)
           .update({
             ...formData,
             updated_at: new Date().toISOString(),
@@ -62,7 +62,7 @@ export default function ProgramsManagement() {
         if (error) throw error;
         showNotification('Program updated successfully', 'success');
       } else {
-        const { error } = await supabase.from('programs').insert(formData);
+        const { error } = await (supabase.from('programs') as any).insert(formData);
 
         if (error) throw error;
         showNotification('Program created successfully', 'success');
@@ -81,7 +81,7 @@ export default function ProgramsManagement() {
     if (!confirm('Are you sure you want to delete this program?')) return;
 
     try {
-      const { error } = await supabase.from('programs').delete().eq('id', id);
+      const { error } = await (supabase.from('programs') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Program deleted successfully', 'success');

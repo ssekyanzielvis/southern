@@ -86,7 +86,7 @@ export default function LeadershipManagement() {
     if (!confirm('Are you sure you want to delete this leader?')) return;
 
     try {
-      const { error } = await supabase.from('leadership').delete().eq('id', id);
+      const { error } = await (supabase.from('leadership') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Leader deleted successfully', 'success');

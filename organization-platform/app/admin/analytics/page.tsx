@@ -25,8 +25,8 @@ export default function Analytics() {
 
   const fetchAnalytics = async () => {
     try {
-      const { data, error } = await supabase
-        .from('analytics')
+      const { data, error } = await (supabase
+        .from('analytics') as any)
         .select('*')
         .order('visited_at', { ascending: false })
         .limit(100);

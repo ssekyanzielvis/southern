@@ -63,7 +63,7 @@ export async function trackAnalytics(
       ...additionalData,
     };
 
-    const { error } = await supabase.from('analytics').insert([analyticsData]);
+    const { error } = await (supabase.from('analytics') as any).insert([analyticsData]);
 
     if (error) {
       console.error('Analytics tracking error:', error);

@@ -31,8 +31,8 @@ export default function GalleryManagement() {
 
   const fetchGallery = async () => {
     try {
-      const { data, error } = await supabase
-        .from('gallery')
+      const { data, error } = await (supabase
+        .from('gallery') as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -81,7 +81,7 @@ export default function GalleryManagement() {
     if (!confirm('Are you sure you want to delete this image?')) return;
 
     try {
-      const { error } = await supabase.from('gallery').delete().eq('id', id);
+      const { error } = await (supabase.from('gallery') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Gallery item deleted successfully', 'success');

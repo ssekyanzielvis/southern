@@ -20,8 +20,8 @@ export default function Header() {
   }, []);
 
   const fetchOrgName = async () => {
-    const { data } = await supabase
-      .from('footer_info')
+    const { data } = await (supabase
+      .from('footer_info') as any)
       .select('organization_name')
       .single();
     

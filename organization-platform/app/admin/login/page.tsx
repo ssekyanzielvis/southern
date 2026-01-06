@@ -57,8 +57,8 @@ export default function AdminLoginPage() {
       const passwordHash = await hashPassword(data.password);
 
       // Query admin with matching email and password
-      const { data: admin, error } = await supabase
-        .from('admins')
+      const { data: admin, error } = await (supabase
+        .from('admins') as any)
         .select('id, email, full_name, image_url')
         .eq('email', data.email)
         .eq('password_hash', passwordHash)

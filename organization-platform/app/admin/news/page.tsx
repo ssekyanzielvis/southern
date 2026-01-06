@@ -52,8 +52,8 @@ export default function NewsManagement() {
 
     try {
       if (editingNews) {
-        const { error } = await supabase
-          .from('news')
+        const { error } = await (supabase
+          .from('news') as any)
           .update({
             ...formData,
             updated_at: new Date().toISOString(),
@@ -63,7 +63,7 @@ export default function NewsManagement() {
         if (error) throw error;
         showNotification('News updated successfully', 'success');
       } else {
-        const { error } = await supabase.from('news').insert(formData);
+        const { error } = await (supabase.from('news') as any).insert(formData);
 
         if (error) throw error;
         showNotification('News created successfully', 'success');
@@ -82,7 +82,7 @@ export default function NewsManagement() {
     if (!confirm('Are you sure you want to delete this news item?')) return;
 
     try {
-      const { error } = await supabase.from('news').delete().eq('id', id);
+      const { error } = await (supabase.from('news') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('News deleted successfully', 'success');

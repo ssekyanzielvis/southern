@@ -25,8 +25,8 @@ export default function DonationsManagement() {
 
   const fetchDonations = async () => {
     try {
-      const { data, error } = await supabase
-        .from('donations')
+      const { data, error } = await (supabase
+        .from('donations') as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -41,7 +41,7 @@ export default function DonationsManagement() {
 
   const fetchFooterInfo = async () => {
     try {
-      const { data, error } = await supabase.from('footer_info').select('*').limit(1).single();
+      const { data, error } = await (supabase.from('footer_info') as any).select('*').limit(1).single();
 
       if (error) throw error;
       setFooterInfo(data);
@@ -54,7 +54,7 @@ export default function DonationsManagement() {
     if (!confirm('Are you sure you want to delete this donation?')) return;
 
     try {
-      const { error } = await supabase.from('donations').delete().eq('id', id);
+      const { error } = await (supabase.from('donations') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Donation deleted successfully', 'success');

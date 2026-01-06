@@ -19,7 +19,7 @@ export default function TestConnectionPage() {
 
     // Test 2: Supabase client
     try {
-      const { data, error } = await supabase.from('admins').select('count');
+      const { data, error } = await (supabase.from('admins') as any).select('count');
       results.supabaseClient = error 
         ? `❌ Error: ${error.message}` 
         : '✅ Connected';
@@ -43,8 +43,8 @@ export default function TestConnectionPage() {
 
     // Test 4: Try to fetch an admin (without credentials)
     try {
-      const { data, error } = await supabase
-        .from('admins')
+      const { data, error } = await (supabase
+        .from('admins') as any)
         .select('email, full_name')
         .eq('email', 'abdulssekyanzi@gmail.com')
         .single();

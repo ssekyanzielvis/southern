@@ -32,8 +32,8 @@ export default function AchievementsManagement() {
 
   const fetchAchievements = async () => {
     try {
-      const { data, error } = await supabase
-        .from('achievements')
+      const { data, error } = await (supabase
+        .from('achievements') as any)
         .select('*')
         .order('achievement_date', { ascending: false });
 
@@ -82,7 +82,7 @@ export default function AchievementsManagement() {
     if (!confirm('Are you sure you want to delete this achievement?')) return;
 
     try {
-      const { error } = await supabase.from('achievements').delete().eq('id', id);
+      const { error } = await (supabase.from('achievements') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Achievement deleted successfully', 'success');

@@ -92,15 +92,15 @@ export default function HomePage() {
         newsData,
         galleryData,
       ] = await Promise.all([
-        supabase.from('about_us').select('*').eq('is_active', true).limit(1),
-        supabase.from('vision').select('*').eq('is_active', true).single(),
-        supabase.from('mission').select('*').eq('is_active', true).single(),
-        supabase.from('objectives').select('*').eq('is_active', true).order('order_index').limit(3),
-        supabase.from('programs').select('*').eq('is_active', true).eq('is_featured', true).limit(3),
-        supabase.from('achievements').select('*').eq('is_active', true).eq('is_featured', true).limit(3),
-        supabase.from('core_values').select('*').eq('is_active', true).eq('is_featured', true).limit(3),
-        supabase.from('news').select('*').eq('is_active', true).eq('is_featured', true).order('published_date', { ascending: false }).limit(3),
-        supabase.from('gallery').select('*').eq('is_active', true).eq('is_featured', true).limit(6),
+        (supabase.from('about_us') as any).select('*').eq('is_active', true).limit(1),
+        (supabase.from('vision') as any).select('*').eq('is_active', true).single(),
+        (supabase.from('mission') as any).select('*').eq('is_active', true).single(),
+        (supabase.from('objectives') as any).select('*').eq('is_active', true).order('order_index').limit(3),
+        (supabase.from('programs') as any).select('*').eq('is_active', true).eq('is_featured', true).limit(3),
+        (supabase.from('achievements') as any).select('*').eq('is_active', true).eq('is_featured', true).limit(3),
+        (supabase.from('core_values') as any).select('*').eq('is_active', true).eq('is_featured', true).limit(3),
+        (supabase.from('news') as any).select('*').eq('is_active', true).eq('is_featured', true).order('published_date', { ascending: false }).limit(3),
+        (supabase.from('gallery') as any).select('*').eq('is_active', true).eq('is_featured', true).limit(6),
       ]);
 
       setAbout(aboutData.data || []);

@@ -85,7 +85,7 @@ export default function CoreValuesManagement() {
     if (!confirm('Are you sure you want to delete this core value?')) return;
 
     try {
-      const { error } = await supabase.from('core_values').delete().eq('id', id);
+      const { error } = await (supabase.from('core_values') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Core value deleted successfully', 'success');

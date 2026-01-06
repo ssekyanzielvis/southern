@@ -42,8 +42,8 @@ export default function Settings() {
   const fetchSettings = async () => {
     try {
       const [footerData, paymentData] = await Promise.all([
-        supabase.from('footer_info').select('*').limit(1).single(),
-        supabase.from('payment_settings').select('*').limit(1).single(),
+        (supabase.from('footer_info') as any).select('*').limit(1).single(),
+        (supabase.from('payment_settings') as any).select('*').limit(1).single(),
       ]);
 
       if (footerData.data) {
@@ -78,8 +78,8 @@ export default function Settings() {
     setLoading(true);
     try {
       if (footerInfo) {
-        const { error } = await supabase
-          .from('footer_info')
+        const { error } = await (supabase
+          .from('footer_info') as any)
           .update({
             ...footerForm,
             updated_at: new Date().toISOString(),
@@ -88,7 +88,7 @@ export default function Settings() {
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('footer_info').insert(footerForm);
+        const { error } = await (supabase.from('footer_info') as any).insert(footerForm);
 
         if (error) throw error;
       }
@@ -106,8 +106,8 @@ export default function Settings() {
     setLoading(true);
     try {
       if (paymentSettings) {
-        const { error } = await supabase
-          .from('payment_settings')
+        const { error } = await (supabase
+          .from('payment_settings') as any)
           .update({
             ...paymentForm,
             updated_at: new Date().toISOString(),
@@ -116,7 +116,7 @@ export default function Settings() {
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('payment_settings').insert(paymentForm);
+        const { error } = await (supabase.from('payment_settings') as any).insert(paymentForm);
 
         if (error) throw error;
       }
