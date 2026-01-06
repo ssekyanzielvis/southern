@@ -100,6 +100,7 @@ export default function DonatePage() {
       const { error } = await (supabase.from('donations') as any).insert([
         {
           ...data,
+          receipt_number: receiptNumber,
           payment_reference: receiptNumber,
           receipt_generated: data.payment_method !== 'manual',
         },
