@@ -51,8 +51,8 @@ export default function GalleryManagement() {
 
     try {
       if (editingItem) {
-        const { error } = await supabase
-          .from('gallery')
+        const { error } = await (supabase
+          .from('gallery') as any)
           .update({
             ...formData,
             updated_at: new Date().toISOString(),
@@ -62,7 +62,7 @@ export default function GalleryManagement() {
         if (error) throw error;
         showNotification('Gallery item updated successfully', 'success');
       } else {
-        const { error } = await supabase.from('gallery').insert(formData);
+        const { error } = await (supabase.from('gallery') as any).insert(formData);
 
         if (error) throw error;
         showNotification('Gallery item created successfully', 'success');
