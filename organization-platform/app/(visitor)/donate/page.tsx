@@ -35,10 +35,16 @@ interface PaymentNumber {
   display_order: number;
 }
 
+interface FooterData {
+  email: string | null;
+  phone: string | null;
+}
+
 export default function DonatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   const [paymentNumbers, setPaymentNumbers] = useState<PaymentNumber[]>([]);
+  const [footerData, setFooterData] = useState<FooterData | null>(null);
   const showNotification = useAppStore((state) => state.showNotification);
 
   const {
@@ -59,7 +65,24 @@ export default function DonatePage() {
   useEffect(() => {
     fetchPaymentSettings();
     fetchPaymentNumbers();
+    fetchFooterData();
   }, []);
+
+  const fetchFooterData = async () => {
+    try {
+      const { data } = await supabase
+        .from('footer_info')
+        .select('email, phone')
+        .limit(1)
+        .single();
+      
+      if (data) {
+        setFooterData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching footer data:', error);
+    }
+  };
 
   const fetchPaymentSettings = async () => {
     try {
@@ -102,16 +125,31 @@ export default function DonatePage() {
           ...data,
           receipt_number: receiptNumber,
           payment_reference: receiptNumber,
-          receipt_generated: data.payment_method !== 'manual',
+          receipt_generated: false, // Will be marked true after admin verification
+          payment_status: 'pending',
         },
       ]);
 
       if (error) throw error;
 
-      showNotification(
-        `Thank you for your donation of ${formatCurrency(data.amount)}! Reference: ${receiptNumber}`,
-        'success'
-      );
+      // Show payment-specific instructions
+      if (data.payment_method === 'mtn' || data.payment_method === 'airtel') {
+        showNotification(
+          `Payment initiated! Please complete the payment on your phone. Reference: ${receiptNumber}`,
+          'success'
+        );
+      } else if (data.payment_method === 'card') {
+        showNotification(
+          `Payment request received! Contact us to complete the card payment. Reference: ${receiptNumber}`,
+          'success'
+        );
+      } else {
+        showNotification(
+          `Thank you for your donation of ${formatCurrency(data.amount)}! Reference: ${receiptNumber}`,
+          'success'
+        );
+      }
+      
       reset();
     } catch (error) {
       console.error('Error processing donation:', error);
@@ -280,6 +318,129 @@ export default function DonatePage() {
               </div>
             </div>
 
+            {/* MTN Mobile Money Instructions */}
+            {paymentMethod === 'mtn' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h3 className="font-semibold text-lg mb-4 flex items-center">
+                  <Smartphone className="w-5 h-5 mr-2 text-yellow-600" />
+                  MTN Mobile Money Payment
+                </h3>
+                <div className="space-y-3">
+                  <div className="bg-white border border-yellow-300 rounded-lg p-4">
+                    <p className="font-semibold text-gray-900 mb-2">Payment Steps:</p>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                      <li>Dial <strong className="text-blue-600">*165#</strong> on your MTN phone</li>
+                      <li>Select <strong>Send Money (Option 1)</strong></li>
+                      <li>Enter the organization's MTN number shown below</li>
+                      <li>Enter amount: <strong className="text-blue-600">UGX {watch('amount')?.toLocaleString() || '0'}</strong></li>
+                      <li>Enter your MTN PIN to confirm</li>
+                      <li>Submit this form after successful payment</li>
+                    </ol>
+                  </div>
+                  {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('mtn')).length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="font-semibold text-gray-900">Send payment to:</p>
+                      {paymentNumbers
+                        .filter(n => n.network_name.toLowerCase().includes('mtn'))
+                        .map((number) => (
+                          <div key={number.id} className="bg-white border border-yellow-300 rounded-lg p-3">
+                            <p className="text-lg font-bold text-blue-600">{number.phone_number}</p>
+                            <p className="text-sm text-gray-600">Name: {number.account_name}</p>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="bg-red-50 border border-red-200 rounded p-3">
+                      <p className="text-sm text-red-700">
+                        MTN payment number not configured. Please use another payment method or contact us.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Airtel Money Instructions */}
+            {paymentMethod === 'airtel' && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                <h3 className="font-semibold text-lg mb-4 flex items-center">
+                  <Smartphone className="w-5 h-5 mr-2 text-red-600" />
+                  Airtel Money Payment
+                </h3>
+                <div className="space-y-3">
+                  <div className="bg-white border border-red-300 rounded-lg p-4">
+                    <p className="font-semibold text-gray-900 mb-2">Payment Steps:</p>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                      <li>Dial <strong className="text-red-600">*185#</strong> on your Airtel phone</li>
+                      <li>Select <strong>Send Money (Option 1)</strong></li>
+                      <li>Enter the organization's Airtel number shown below</li>
+                      <li>Enter amount: <strong className="text-red-600">UGX {watch('amount')?.toLocaleString() || '0'}</strong></li>
+                      <li>Enter your Airtel PIN to confirm</li>
+                      <li>Submit this form after successful payment</li>
+                    </ol>
+                  </div>
+                  {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('airtel')).length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="font-semibold text-gray-900">Send payment to:</p>
+                      {paymentNumbers
+                        .filter(n => n.network_name.toLowerCase().includes('airtel'))
+                        .map((number) => (
+                          <div key={number.id} className="bg-white border border-red-300 rounded-lg p-3">
+                            <p className="text-lg font-bold text-red-600">{number.phone_number}</p>
+                            <p className="text-sm text-gray-600">Name: {number.account_name}</p>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="bg-red-50 border border-red-200 rounded p-3">
+                      <p className="text-sm text-red-700">
+                        Airtel payment number not configured. Please use another payment method or contact us.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Card Payment Instructions */}
+            {paymentMethod === 'card' && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                <h3 className="font-semibold text-lg mb-4 flex items-center">
+                  <CreditCard className="w-5 h-5 mr-2 text-purple-600" />
+                  Credit/Debit Card Payment
+                </h3>
+                <div className="bg-white border border-purple-300 rounded-lg p-4">
+                  <p className="text-sm text-gray-700 mb-3">
+                    To complete your card payment, please contact our office with the following details:
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-gray-600">Amount:</span>
+                      <span className="font-semibold text-purple-600">
+                        UGX {watch('amount')?.toLocaleString() || '0'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-gray-600">Payment Method:</span>
+                      <span className="font-semibold">Credit/Debit Card</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-purple-100 rounded">
+                    <p className="text-sm font-semibold text-purple-900 mb-2">Contact Information:</p>
+                    <p className="text-sm text-purple-800">
+                      Email: {footerData?.email || 'info@organization.com'}
+                    </p>
+                    <p className="text-sm text-purple-800">
+                      Phone: {footerData?.phone || '+256 000 000000'}
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-3">
+                    Our team will guide you through the secure card payment process and provide you with payment confirmation.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Manual Payment Instructions */}
             {paymentMethod === 'manual' && paymentNumbers.length > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
@@ -330,15 +491,6 @@ export default function DonatePage() {
                 </p>
                 <p className="text-sm text-gray-700 mt-2">
                   After payment, submit this form to record your donation.
-                </p>
-              </div>
-            )}
-
-            {/* Payment Method Instructions */}
-            {paymentMethod !== 'manual' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-gray-700">
-                  After submitting, you will receive payment instructions to complete your donation.
                 </p>
               </div>
             )}
