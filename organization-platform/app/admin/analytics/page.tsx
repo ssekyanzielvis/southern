@@ -43,13 +43,13 @@ export default function Analytics() {
   const fetchStats = async () => {
     try {
       const [analyticsCount, donationsData, contactsCount] = await Promise.all([
-        supabase.from('analytics').select('*', { count: 'exact', head: true }),
-        supabase.from('donations').select('amount'),
-        supabase.from('contact_submissions').select('*', { count: 'exact', head: true }),
+        (supabase.from('analytics') as any).select('*', { count: 'exact', head: true }),
+        (supabase.from('donations') as any).select('amount'),
+        (supabase.from('contact_submissions') as any).select('*', { count: 'exact', head: true }),
       ]);
 
       const uniqueVisitors = new Set(analytics.map((a) => a.visitor_id)).size;
-      const totalDonations = donationsData.data?.reduce((sum, d) => sum + d.amount, 0) || 0;
+      const totalDonations = donationsData.data?.reduce((sum: number, d: any) => sum + d.amount, 0) || 0;
 
       setStats({
         totalPageViews: analyticsCount.count || 0,
