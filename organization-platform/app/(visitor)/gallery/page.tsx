@@ -34,15 +34,15 @@ export default function GalleryPage() {
 
   const fetchGallery = async () => {
     try {
-      const { data, error } = await supabase
-        .from('gallery')
+      const { data, error } = await (supabase
+        .from('gallery') as any)
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      const galleryImages = data || [];
+      const galleryImages = (data || []) as GalleryImage[];
       setImages(galleryImages);
       setFilteredImages(galleryImages);
 
