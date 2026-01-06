@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { Database } from '@/lib/supabase/types';
 import { useAppStore } from '@/lib/store';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -70,7 +71,7 @@ export default function ContactPage() {
   const onSubmit = async (data: ContactFormData) => {
     setSubmitting(true);
     try {
-      const submissionData = {
+      const submissionData: Database['public']['Tables']['contact_submissions']['Insert'] = {
         full_name: data.full_name,
         email: data.email,
         phone_number: data.phone_number,
