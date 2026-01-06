@@ -29,9 +29,18 @@ interface FooterData {
   phone: string | null;
 }
 
+interface OfficeHour {
+  id: string;
+  day_label: string;
+  hours: string;
+  is_active: boolean;
+  display_order: number;
+}
+
 export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
   const [footerData, setFooterData] = useState<FooterData | null>(null);
+  const [officeHours, setOfficeHours] = useState<OfficeHour[]>([]);
   const showNotification = useAppStore((state) => state.showNotification);
 
   const {
@@ -45,6 +54,7 @@ export default function ContactPage() {
 
   useEffect(() => {
     fetchFooterData();
+    fetchOfficeHours();
   }, []);
 
   const fetchFooterData = async () => {
@@ -65,6 +75,22 @@ export default function ContactPage() {
       }
     } catch (error) {
       console.error('Failed to fetch footer data:', error);
+    }
+  };
+
+  const fetchOfficeHours = async () => {
+    try {
+      const { data } = await (supabase
+        .from('office_hours') as any)
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      
+      if (data) {
+        setOfficeHours(data);
+      }
+    } catch (error) {
+      console.error('Error fetching office hours:', error);
     }
   };
 
@@ -142,9 +168,21 @@ export default function ContactPage() {
 
             <div className="bg-blue-50 rounded-lg p-6">
               <h3 className="text-xl font-bold mb-3">Office Hours</h3>
-              <p className="text-gray-700">Monday - Friday: 9:00 AM - 5:00 PM</p>
-              <p className="text-gray-700">Saturday: 9:00 AM - 1:00 PM</p>
-              <p className="text-gray-700">Sunday: Closed</p>
+              {officeHours.length > 0 ? (
+                <div className="space-y-1">
+                  {officeHours.map((hour) => (
+                    <p key={hour.id} className="text-gray-700">
+                      {hour.day_label}: {hour.hours}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-gray-700">Monday - Friday: 9:00 AM - 5:00 PM</p>
+                  <p className="text-gray-700">Saturday: 9:00 AM - 1:00 PM</p>
+                  <p className="text-gray-700">Sunday: Closed</p>
+                </div>
+              )}
             </div>
           </div>
 
