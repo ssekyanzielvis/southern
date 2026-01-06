@@ -51,8 +51,8 @@ export default function CoreValuesManagement() {
 
     try {
       if (editingValue) {
-        const { error } = await supabase
-          .from('core_values')
+        const { error } = await (supabase
+          .from('core_values') as any)
           .update({
             ...formData,
             updated_at: new Date().toISOString(),
@@ -63,7 +63,7 @@ export default function CoreValuesManagement() {
         showNotification('Core value updated successfully', 'success');
       } else {
         const maxOrder = coreValues.length > 0 ? Math.max(...coreValues.map((v) => v.order_index)) : 0;
-        const { error } = await supabase.from('core_values').insert({
+        const { error } = await (supabase.from('core_values') as any).insert({
           ...formData,
           order_index: maxOrder + 1,
         });
