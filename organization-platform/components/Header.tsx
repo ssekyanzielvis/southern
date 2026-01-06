@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
@@ -49,9 +50,17 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo/Organization Name */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-3">
+            <Image
+              src="/logo.png"
+              alt={orgName}
+              width={50}
+              height={50}
+              className="h-10 w-auto md:h-12"
+              priority
+            />
             <h1
-              className="text-xl md:text-2xl font-bold"
+              className="text-lg md:text-xl font-bold hidden sm:block"
               style={{ color: '#FFFFFF' }}
             >
               {orgName}
