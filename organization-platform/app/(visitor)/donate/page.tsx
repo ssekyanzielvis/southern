@@ -468,7 +468,7 @@ export default function DonatePage() {
                         <li>Enter your MTN PIN to confirm</li>
                       </ol>
                     </div>
-                  {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('mtn')).length > 0 ? (
+                    {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('mtn')).length > 0 ? (
                     <div className="space-y-2">
                       <p className="font-semibold text-gray-900">Send payment to:</p>
                       {paymentNumbers
@@ -487,7 +487,8 @@ export default function DonatePage() {
                       </p>
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -531,7 +532,7 @@ export default function DonatePage() {
                         <li>Enter your Airtel PIN to confirm</li>
                       </ol>
                     </div>
-                  {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('airtel')).length > 0 ? (
+                    {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('airtel')).length > 0 ? (
                     <div className="space-y-2">
                       <p className="font-semibold text-gray-900">Send payment to:</p>
                       {paymentNumbers
@@ -550,7 +551,8 @@ export default function DonatePage() {
                       </p>
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
