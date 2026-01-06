@@ -52,8 +52,8 @@ export default function AchievementsManagement() {
 
     try {
       if (editingAchievement) {
-        const { error } = await supabase
-          .from('achievements')
+        const { error } = await (supabase
+          .from('achievements') as any)
           .update({
             ...formData,
             updated_at: new Date().toISOString(),
@@ -63,7 +63,7 @@ export default function AchievementsManagement() {
         if (error) throw error;
         showNotification('Achievement updated successfully', 'success');
       } else {
-        const { error } = await supabase.from('achievements').insert(formData);
+        const { error } = await (supabase.from('achievements') as any).insert(formData);
 
         if (error) throw error;
         showNotification('Achievement created successfully', 'success');
