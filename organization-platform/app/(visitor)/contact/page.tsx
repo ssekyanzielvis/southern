@@ -108,15 +108,18 @@ export default function ContactPage() {
 
       const { error } = await (supabase
         .from('contact_submissions') as any)
-        .insert(submissionData);
+        .insert([submissionData]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       showNotification('Your message has been sent successfully! We will get back to you soon.', 'success');
       reset();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting contact form:', error);
-      showNotification('Failed to send message. Please try again.', 'error');
+      showNotification(error?.message || 'Failed to send message. Please try again.', 'error');
     } finally {
       setSubmitting(false);
     }
