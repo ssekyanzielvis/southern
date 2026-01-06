@@ -386,15 +386,15 @@ export default function HomePage() {
       )}
 
       {/* Call to Action - Donate */}
-      <section className="py-16 px-4 bg-blue-600 text-white">
+      <section className="py-16 px-4 bg-white">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Make a Difference Today</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
+          <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-700">
             Your support helps us continue our mission to create positive change in our community.
           </p>
           <Link
             href="/donate"
-            className="inline-flex items-center bg-white text-blue-600 px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors font-bold text-lg"
+            className="inline-flex items-center bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-bold text-lg shadow-lg hover:shadow-xl"
           >
             Donate Now <ArrowRight className="ml-2 w-6 h-6" />
           </Link>
