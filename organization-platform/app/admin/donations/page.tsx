@@ -104,6 +104,12 @@ export default function DonationsManagement() {
               border-bottom: 2px solid #1E40AF;
               padding-bottom: 20px;
             }
+            .header img {
+              width: 80px;
+              height: 80px;
+              margin-bottom: 15px;
+              object-fit: contain;
+            }
             .header h1 {
               margin: 0;
               color: #1E40AF;
@@ -141,6 +147,7 @@ export default function DonationsManagement() {
         </head>
         <body>
           <div class="header">
+            <img src="${window.location.origin}/logo.png" alt="Logo" />
             <h1>${footerInfo?.organization_name || 'Organization'}</h1>
             <p>${footerInfo?.location || ''}</p>
             <p>${footerInfo?.email || ''} | ${footerInfo?.phone || ''}</p>
