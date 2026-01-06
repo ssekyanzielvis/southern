@@ -70,7 +70,7 @@ export default function DonatePage() {
     try {
       const receiptNumber = generateReceiptNumber();
       
-      const { error } = await supabase.from('donations').insert([
+      const { error } = await (supabase.from('donations') as any).insert([
         {
           ...data,
           payment_reference: receiptNumber,
