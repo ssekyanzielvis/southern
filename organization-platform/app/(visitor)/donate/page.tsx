@@ -26,9 +26,19 @@ interface PaymentSettings {
   mobile_money_network: string | null;
 }
 
+interface PaymentNumber {
+  id: string;
+  network_name: string;
+  phone_number: string;
+  account_name: string;
+  is_active: boolean;
+  display_order: number;
+}
+
 export default function DonatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
+  const [paymentNumbers, setPaymentNumbers] = useState<PaymentNumber[]>([]);
   const showNotification = useAppStore((state) => state.showNotification);
 
   const {
@@ -48,6 +58,7 @@ export default function DonatePage() {
 
   useEffect(() => {
     fetchPaymentSettings();
+    fetchPaymentNumbers();
   }, []);
 
   const fetchPaymentSettings = async () => {
@@ -62,6 +73,22 @@ export default function DonatePage() {
       }
     } catch (error) {
       console.error('Error fetching payment settings:', error);
+    }
+  };
+
+  const fetchPaymentNumbers = async () => {
+    try {
+      const { data } = await (supabase
+        .from('payment_numbers') as any)
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      
+      if (data) {
+        setPaymentNumbers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching payment numbers:', error);
     }
   };
 
@@ -253,7 +280,42 @@ export default function DonatePage() {
             </div>
 
             {/* Manual Payment Instructions */}
-            {paymentMethod === 'manual' && paymentSettings?.mobile_money_number && (
+            {paymentMethod === 'manual' && paymentNumbers.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h3 className="font-semibold text-lg mb-4">Payment Instructions</h3>
+                <p className="text-sm text-gray-700 mb-4">
+                  Please send your donation to any of the following numbers:
+                </p>
+                <div className="space-y-4">
+                  {paymentNumbers.map((number) => (
+                    <div
+                      key={number.id}
+                      className="bg-white border border-yellow-300 rounded-lg p-4"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-semibold text-base text-gray-900">
+                            {number.network_name}
+                          </p>
+                          <p className="text-lg font-bold text-blue-600 mt-1">
+                            {number.phone_number}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Name: {number.account_name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-700 mt-4 p-3 bg-yellow-100 rounded">
+                  <strong>Note:</strong> After making the payment, please submit this form to record your donation.
+                </p>
+              </div>
+            )}
+
+            {/* Fallback if no payment numbers */}
+            {paymentMethod === 'manual' && paymentNumbers.length === 0 && paymentSettings?.mobile_money_number && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Payment Instructions</h3>
                 <p className="text-sm text-gray-700 mb-2">

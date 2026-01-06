@@ -75,6 +75,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Leadership', href: '/admin/leadership', icon: Users },
     { name: 'Contacts', href: '/admin/contacts', icon: Mail },
     { name: 'Donations', href: '/admin/donations', icon: DollarSign },
+    { name: 'Payment Numbers', href: '/admin/payment-numbers', icon: DollarSign },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Theme', href: '/admin/theme', icon: Palette },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
