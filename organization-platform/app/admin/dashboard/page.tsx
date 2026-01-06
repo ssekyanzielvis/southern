@@ -46,16 +46,16 @@ export default function AdminDashboard() {
         donations,
         leaders,
       ] = await Promise.all([
-        supabase.from('programs').select('id', { count: 'exact', head: true }),
-        supabase.from('achievements').select('id', { count: 'exact', head: true }),
-        supabase.from('news').select('id', { count: 'exact', head: true }),
-        supabase.from('gallery').select('id', { count: 'exact', head: true }),
-        supabase.from('contact_submissions').select('id', { count: 'exact', head: true }),
-        supabase.from('donations').select('amount'),
-        supabase.from('leadership').select('id', { count: 'exact', head: true }),
+        (supabase.from('programs') as any).select('id', { count: 'exact', head: true }),
+        (supabase.from('achievements') as any).select('id', { count: 'exact', head: true }),
+        (supabase.from('news') as any).select('id', { count: 'exact', head: true }),
+        (supabase.from('gallery') as any).select('id', { count: 'exact', head: true }),
+        (supabase.from('contact_submissions') as any).select('id', { count: 'exact', head: true }),
+        (supabase.from('donations') as any).select('amount'),
+        (supabase.from('leadership') as any).select('id', { count: 'exact', head: true }),
       ]);
 
-      const totalDonations = donations.data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0;
+      const totalDonations = donations.data?.reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0;
 
       setStats({
         programs: programs.count || 0,
