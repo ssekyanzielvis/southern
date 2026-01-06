@@ -42,6 +42,8 @@ interface FooterData {
 
 export default function DonatePage() {
   const [submitting, setSubmitting] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [transactionReference, setTransactionReference] = useState<string | null>(null);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   const [paymentNumbers, setPaymentNumbers] = useState<PaymentNumber[]>([]);
   const [footerData, setFooterData] = useState<FooterData | null>(null);
@@ -120,43 +122,151 @@ export default function DonatePage() {
     try {
       const receiptNumber = generateReceiptNumber();
       
-      const { error } = await (supabase.from('donations') as any).insert([
+      // Create donation record first
+      const { data: donationData, error: insertError } = await (supabase.from('donations') as any).insert([
         {
           ...data,
           receipt_number: receiptNumber,
           payment_reference: receiptNumber,
-          receipt_generated: false, // Will be marked true after admin verification
+          receipt_generated: false,
           payment_status: 'pending',
         },
-      ]);
+      ]).select();
 
-      if (error) throw error;
+      if (insertError) throw insertError;
+      
+      const donationId = donationData[0].id;
 
-      // Show payment-specific instructions
+      // Handle MTN or Airtel payment via API
       if (data.payment_method === 'mtn' || data.payment_method === 'airtel') {
+        setProcessingPayment(true);
         showNotification(
-          `Payment initiated! Please complete the payment on your phone. Reference: ${receiptNumber}`,
-          'success'
+          'Initiating payment... Please check your phone for payment prompt.',
+          'info'
         );
+
+        try {
+          const paymentResponse = await fetch('/api/payments/initiate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              donationId,
+              paymentMethod: data.payment_method,
+              amount: data.amount,
+              phoneNumber: data.donor_phone,
+            }),
+          });
+
+          const paymentResult = await paymentResponse.json();
+
+          if (!paymentResponse.ok) {
+            throw new Error(paymentResult.error || 'Payment initiation failed');
+          }
+
+          setTransactionReference(paymentResult.referenceId);
+          
+          showNotification(
+            `Payment prompt sent to your phone! Reference: ${paymentResult.referenceId}`,
+            'success'
+          );
+
+          // Start checking payment status
+          checkPaymentStatus(paymentResult.referenceId, data.payment_method);
+          
+        } catch (paymentError: any) {
+          console.error('Payment API error:', paymentError);
+          showNotification(
+            paymentError.message || 'Failed to initiate payment. You can still complete payment manually.',
+            'error'
+          );
+          setProcessingPayment(false);
+        }
+
       } else if (data.payment_method === 'card') {
         showNotification(
           `Payment request received! Contact us to complete the card payment. Reference: ${receiptNumber}`,
           'success'
         );
+        reset();
       } else {
         showNotification(
           `Thank you for your donation of ${formatCurrency(data.amount)}! Reference: ${receiptNumber}`,
           'success'
         );
+        reset();
       }
       
-      reset();
     } catch (error) {
       console.error('Error processing donation:', error);
       showNotification('Failed to process donation. Please try again.', 'error');
-    } finally {
       setSubmitting(false);
     }
+  };
+
+  const checkPaymentStatus = async (referenceId: string, provider: string) => {
+    let attempts = 0;
+    const maxAttempts = 12; // Check for up to 2 minutes (12 * 10 seconds)
+    
+    const checkStatus = async () => {
+      try {
+        const response = await fetch('/api/payments/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ referenceId, provider }),
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          showNotification(
+            'Payment successful! Thank you for your donation.',
+            'success'
+          );
+          setProcessingPayment(false);
+          setSubmitting(false);
+          setTransactionReference(null);
+          reset();
+          return;
+        } else if (result.status === 'failed') {
+          showNotification(
+            'Payment failed. Please try again or use manual transfer.',
+            'error'
+          );
+          setProcessingPayment(false);
+          setSubmitting(false);
+          setTransactionReference(null);
+          return;
+        }
+
+        // Still processing
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 10000); // Check again in 10 seconds
+        } else {
+          showNotification(
+            'Payment is taking longer than expected. We will notify you once confirmed.',
+            'info'
+          );
+          setProcessingPayment(false);
+          setSubmitting(false);
+          setTransactionReference(null);
+          reset();
+        }
+      } catch (error) {
+        console.error('Status check error:', error);
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 10000);
+        } else {
+          setProcessingPayment(false);
+          setSubmitting(false);
+          setTransactionReference(null);
+        }
+      }
+    };
+
+    // Start checking after 5 seconds (give time for payment prompt)
+    setTimeout(checkStatus, 5000);
   };
 
   return (
@@ -325,18 +435,39 @@ export default function DonatePage() {
                   <Smartphone className="w-5 h-5 mr-2 text-yellow-600" />
                   MTN Mobile Money Payment
                 </h3>
-                <div className="space-y-3">
-                  <div className="bg-white border border-yellow-300 rounded-lg p-4">
-                    <p className="font-semibold text-gray-900 mb-2">Payment Steps:</p>
-                    <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
-                      <li>Dial <strong className="text-blue-600">*165#</strong> on your MTN phone</li>
-                      <li>Select <strong>Send Money (Option 1)</strong></li>
-                      <li>Enter the organization's MTN number shown below</li>
-                      <li>Enter amount: <strong className="text-blue-600">UGX {watch('amount')?.toLocaleString() || '0'}</strong></li>
-                      <li>Enter your MTN PIN to confirm</li>
-                      <li>Submit this form after successful payment</li>
-                    </ol>
+                {processingPayment && transactionReference ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <LoadingSpinner size="sm" />
+                      <p className="font-semibold text-blue-900">Processing payment...</p>
+                    </div>
+                    <p className="text-sm text-blue-800">Reference: {transactionReference}</p>
+                    <p className="text-sm text-blue-700 mt-2">
+                      Please approve the payment on your phone. We're checking the payment status.
+                    </p>
                   </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="bg-white border border-yellow-300 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-2">Automated Payment:</p>
+                      <p className="text-sm text-gray-700 mb-3">
+                        When you submit this form, a payment prompt will be sent to your phone automatically.
+                        Simply approve it with your MTN PIN.
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Amount: <strong className="text-blue-600">UGX {watch('amount')?.toLocaleString() || '0'}</strong>
+                      </p>
+                    </div>
+                    <div className="bg-white border border-yellow-300 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-2">Manual Payment Option:</p>
+                      <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                        <li>Dial <strong className="text-blue-600">*165#</strong> on your MTN phone</li>
+                        <li>Select <strong>Send Money (Option 1)</strong></li>
+                        <li>Enter the organization's MTN number shown below</li>
+                        <li>Enter amount: <strong className="text-blue-600">UGX {watch('amount')?.toLocaleString() || '0'}</strong></li>
+                        <li>Enter your MTN PIN to confirm</li>
+                      </ol>
+                    </div>
                   {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('mtn')).length > 0 ? (
                     <div className="space-y-2">
                       <p className="font-semibold text-gray-900">Send payment to:</p>
@@ -367,18 +498,39 @@ export default function DonatePage() {
                   <Smartphone className="w-5 h-5 mr-2 text-red-600" />
                   Airtel Money Payment
                 </h3>
-                <div className="space-y-3">
-                  <div className="bg-white border border-red-300 rounded-lg p-4">
-                    <p className="font-semibold text-gray-900 mb-2">Payment Steps:</p>
-                    <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
-                      <li>Dial <strong className="text-red-600">*185#</strong> on your Airtel phone</li>
-                      <li>Select <strong>Send Money (Option 1)</strong></li>
-                      <li>Enter the organization's Airtel number shown below</li>
-                      <li>Enter amount: <strong className="text-red-600">UGX {watch('amount')?.toLocaleString() || '0'}</strong></li>
-                      <li>Enter your Airtel PIN to confirm</li>
-                      <li>Submit this form after successful payment</li>
-                    </ol>
+                {processingPayment && transactionReference ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <LoadingSpinner size="sm" />
+                      <p className="font-semibold text-blue-900">Processing payment...</p>
+                    </div>
+                    <p className="text-sm text-blue-800">Reference: {transactionReference}</p>
+                    <p className="text-sm text-blue-700 mt-2">
+                      Please approve the payment on your phone. We're checking the payment status.
+                    </p>
                   </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="bg-white border border-red-300 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-2">Automated Payment:</p>
+                      <p className="text-sm text-gray-700 mb-3">
+                        When you submit this form, a payment prompt will be sent to your phone automatically.
+                        Simply approve it with your Airtel PIN.
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Amount: <strong className="text-red-600">UGX {watch('amount')?.toLocaleString() || '0'}</strong>
+                      </p>
+                    </div>
+                    <div className="bg-white border border-red-300 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-2">Manual Payment Option:</p>
+                      <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                        <li>Dial <strong className="text-red-600">*185#</strong> on your Airtel phone</li>
+                        <li>Select <strong>Send Money (Option 1)</strong></li>
+                        <li>Enter the organization's Airtel number shown below</li>
+                        <li>Enter amount: <strong className="text-red-600">UGX {watch('amount')?.toLocaleString() || '0'}</strong></li>
+                        <li>Enter your Airtel PIN to confirm</li>
+                      </ol>
+                    </div>
                   {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('airtel')).length > 0 ? (
                     <div className="space-y-2">
                       <p className="font-semibold text-gray-900">Send payment to:</p>
@@ -497,11 +649,14 @@ export default function DonatePage() {
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || processingPayment}
               className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
-              {submitting ? (
-                <LoadingSpinner size="sm" />
+              {submitting || processingPayment ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  <span>{processingPayment ? 'Processing Payment...' : 'Submitting...'}</span>
+                </>
               ) : (
                 <span>Complete Donation</span>
               )}
