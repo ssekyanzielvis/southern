@@ -52,8 +52,8 @@ export default function LeadershipManagement() {
 
     try {
       if (editingLeader) {
-        const { error } = await supabase
-          .from('leadership')
+        const { error } = await (supabase
+          .from('leadership') as any)
           .update({
             ...formData,
             updated_at: new Date().toISOString(),
@@ -64,7 +64,7 @@ export default function LeadershipManagement() {
         showNotification('Leader updated successfully', 'success');
       } else {
         const maxOrder = leaders.length > 0 ? Math.max(...leaders.map((l) => l.order_index)) : 0;
-        const { error } = await supabase.from('leadership').insert({
+        const { error } = await (supabase.from('leadership') as any).insert({
           ...formData,
           order_index: maxOrder + 1,
         });
