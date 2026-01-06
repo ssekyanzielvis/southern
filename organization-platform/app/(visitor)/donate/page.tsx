@@ -183,11 +183,44 @@ export default function DonatePage() {
         }
 
       } else if (data.payment_method === 'card') {
+        // Handle card payment via Flutterwave
+        setProcessingPayment(true);
         showNotification(
-          `Payment request received! Contact us to complete the card payment. Reference: ${receiptNumber}`,
-          'success'
+          'Redirecting to secure payment page...',
+          'info'
         );
-        reset();
+
+        try {
+          const cardPaymentResponse = await fetch('/api/payments/card/initiate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              donationId,
+              amount: data.amount,
+              email: data.donor_email || `${data.donor_phone}@temp.com`,
+              phoneNumber: data.donor_phone,
+              name: data.donor_name,
+            }),
+          });
+
+          const cardPaymentResult = await cardPaymentResponse.json();
+
+          if (!cardPaymentResponse.ok) {
+            throw new Error(cardPaymentResult.error || 'Card payment initialization failed');
+          }
+
+          // Redirect to Flutterwave payment page
+          window.location.href = cardPaymentResult.paymentLink;
+          
+        } catch (cardError: any) {
+          console.error('Card payment error:', cardError);
+          showNotification(
+            cardError.message || 'Failed to initialize card payment. Please try again.',
+            'error'
+          );
+          setProcessingPayment(false);
+          setSubmitting(false);
+        }
       } else {
         showNotification(
           `Thank you for your donation of ${formatCurrency(data.amount)}! Reference: ${receiptNumber}`,
@@ -563,35 +596,55 @@ export default function DonatePage() {
                   <CreditCard className="w-5 h-5 mr-2 text-purple-600" />
                   Credit/Debit Card Payment
                 </h3>
-                <div className="bg-white border border-purple-300 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 mb-3">
-                    To complete your card payment, please contact our office with the following details:
-                  </p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-600">Amount:</span>
-                      <span className="font-semibold text-purple-600">
+                {processingPayment && transactionReference ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <LoadingSpinner size="sm" />
+                      <p className="font-semibold text-blue-900">Redirecting to payment page...</p>
+                    </div>
+                    <p className="text-sm text-blue-700 mt-2">
+                      Please wait while we redirect you to our secure payment gateway.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-white border border-purple-300 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-2">Secure Card Payment:</p>
+                      <p className="text-sm text-gray-700 mb-3">
+                        When you submit this form, you'll be redirected to a secure payment page where you can pay with:
+                      </p>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-center">
+                          <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
+                          Visa & Mastercard
+                        </li>
+                        <li className="flex items-center">
+                          <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
+                          Verve Cards
+                        </li>
+                        <li className="flex items-center">
+                          <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
+                          Mobile Money (MTN, Airtel via card gateway)
+                        </li>
+                        <li className="flex items-center">
+                          <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
+                          Bank Transfers
+                        </li>
+                      </ul>
+                      <div className="mt-3 p-3 bg-purple-100 rounded">
+                        <p className="text-xs text-purple-900">
+                          <strong>🔒 Secure Payment:</strong> All transactions are encrypted and processed through Flutterwave's secure payment gateway.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="bg-white border border-purple-300 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-2">Amount to Pay:</p>
+                      <p className="text-2xl font-bold text-purple-600">
                         UGX {watch('amount')?.toLocaleString() || '0'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-600">Payment Method:</span>
-                      <span className="font-semibold">Credit/Debit Card</span>
+                      </p>
                     </div>
                   </div>
-                  <div className="mt-4 p-3 bg-purple-100 rounded">
-                    <p className="text-sm font-semibold text-purple-900 mb-2">Contact Information:</p>
-                    <p className="text-sm text-purple-800">
-                      Email: {footerData?.email || 'info@organization.com'}
-                    </p>
-                    <p className="text-sm text-purple-800">
-                      Phone: {footerData?.phone || '+256 000 000000'}
-                    </p>
-                  </div>
-                  <p className="text-xs text-gray-600 mt-3">
-                    Our team will guide you through the secure card payment process and provide you with payment confirmation.
-                  </p>
-                </div>
+                )}
               </div>
             )}
 
