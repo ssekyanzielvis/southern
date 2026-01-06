@@ -71,7 +71,7 @@ export default function ContactPage() {
   const onSubmit = async (data: ContactFormData) => {
     setSubmitting(true);
     try {
-      const submissionData: Database['public']['Tables']['contact_submissions']['Insert'] = {
+      const submissionData = {
         full_name: data.full_name,
         email: data.email,
         phone_number: data.phone_number,
@@ -80,8 +80,8 @@ export default function ContactPage() {
         message: data.message || null,
       };
 
-      const { error } = await supabase
-        .from('contact_submissions')
+      const { error } = await (supabase
+        .from('contact_submissions') as any)
         .insert(submissionData);
 
       if (error) throw error;
