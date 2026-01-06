@@ -76,8 +76,8 @@ export default function ContentManagement() {
     setLoading(true);
     try {
       if (vision) {
-        const { error } = await supabase
-          .from('vision')
+        const { error } = await (supabase
+          .from('vision') as any)
           .update({
             statement: visionForm.statement,
             image_url: visionForm.image_url,
@@ -87,7 +87,7 @@ export default function ContentManagement() {
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('vision').insert(visionForm);
+        const { error } = await (supabase.from('vision') as any).insert(visionForm);
 
         if (error) throw error;
       }
@@ -105,8 +105,8 @@ export default function ContentManagement() {
     setLoading(true);
     try {
       if (mission) {
-        const { error } = await supabase
-          .from('mission')
+        const { error } = await (supabase
+          .from('mission') as any)
           .update({
             statement: missionForm.statement,
             image_url: missionForm.image_url,
@@ -116,7 +116,7 @@ export default function ContentManagement() {
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('mission').insert(missionForm);
+        const { error } = await (supabase.from('mission') as any).insert(missionForm);
 
         if (error) throw error;
       }
@@ -137,8 +137,8 @@ export default function ContentManagement() {
     try {
       if (editingAboutId) {
         // Update existing about section
-        const { error } = await supabase
-          .from('about_us')
+        const { error } = await (supabase
+          .from('about_us') as any)
           .update({
             description: aboutForm.description,
             image_url: aboutForm.image_url,
@@ -151,7 +151,7 @@ export default function ContentManagement() {
       } else {
         // Add new about section
         const maxOrder = aboutItems.length > 0 ? Math.max(...aboutItems.map((a) => a.order_index)) : 0;
-        const { error } = await supabase.from('about_us').insert({
+        const { error } = await (supabase.from('about_us') as any).insert({
           description: aboutForm.description,
           image_url: aboutForm.image_url,
           order_index: maxOrder + 1,
@@ -186,7 +186,7 @@ export default function ContentManagement() {
     if (!confirm('Delete this about section?')) return;
 
     try {
-      const { error } = await supabase.from('about_us').delete().eq('id', id);
+      const { error } = await (supabase.from('about_us') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('About section deleted', 'success');
@@ -203,8 +203,8 @@ export default function ContentManagement() {
     try {
       if (editingObjectiveId) {
         // Update existing objective
-        const { error } = await supabase
-          .from('objectives')
+        const { error } = await (supabase
+          .from('objectives') as any)
           .update({
             statement: objectiveForm.statement,
             image_url: objectiveForm.image_url,
@@ -218,7 +218,7 @@ export default function ContentManagement() {
         // Add new objective
         const maxOrder =
           objectives.length > 0 ? Math.max(...objectives.map((o) => o.order_index)) : 0;
-        const { error } = await supabase.from('objectives').insert({
+        const { error } = await (supabase.from('objectives') as any).insert({
           statement: objectiveForm.statement,
           image_url: objectiveForm.image_url,
           order_index: maxOrder + 1,
@@ -253,7 +253,7 @@ export default function ContentManagement() {
     if (!confirm('Delete this objective?')) return;
 
     try {
-      const { error } = await supabase.from('objectives').delete().eq('id', id);
+      const { error } = await (supabase.from('objectives') as any).delete().eq('id', id);
 
       if (error) throw error;
       showNotification('Objective deleted', 'success');
