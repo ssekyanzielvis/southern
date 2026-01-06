@@ -44,29 +44,27 @@ export default function ContentManagement() {
 
   const fetchAllContent = async () => {
     try {
-      const [aboutData, visionData, missionData, objectivesData] = await Promise.all([
-        supabase.from('about_us').select('*').order('order_index'),
-        supabase.from('vision').select('*').limit(1).single(),
-        supabase.from('mission').select('*').limit(1).single(),
-        supabase.from('objectives').select('*').order('order_index'),
-      ]);
+      const { data: aboutData } = await (supabase.from('about_us') as any).select('*').order('order_index');
+      const { data: visionData } = await (supabase.from('vision') as any).select('*').limit(1).single();
+      const { data: missionData } = await (supabase.from('mission') as any).select('*').limit(1).single();
+      const { data: objectivesData } = await (supabase.from('objectives') as any).select('*').order('order_index');
 
-      if (aboutData.data) setAboutItems(aboutData.data);
-      if (visionData.data) {
-        setVision(visionData.data);
+      if (aboutData) setAboutItems(aboutData);
+      if (visionData) {
+        setVision(visionData);
         setVisionForm({
-          statement: visionData.data.statement,
-          image_url: visionData.data.image_url || '',
+          statement: visionData.statement,
+          image_url: visionData.image_url || '',
         });
       }
-      if (missionData.data) {
-        setMission(missionData.data);
+      if (missionData) {
+        setMission(missionData);
         setMissionForm({
-          statement: missionData.data.statement,
-          image_url: missionData.data.image_url || '',
+          statement: missionData.statement,
+          image_url: missionData.image_url || '',
         });
       }
-      if (objectivesData.data) setObjectives(objectivesData.data);
+      if (objectivesData) setObjectives(objectivesData);
     } catch (error: any) {
       console.error('Failed to load content', error);
     } finally {
