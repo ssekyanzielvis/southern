@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -52,7 +50,7 @@ export default function VerifyPaymentPage() {
         setStatus('success');
         setMessage('Payment successful! Thank you for your donation.');
         setTransactionDetails(result);
-        
+
         // Redirect to home after 5 seconds
         setTimeout(() => {
           router.push('/');
@@ -110,7 +108,7 @@ export default function VerifyPaymentPage() {
                 Payment Successful!
               </h2>
               <p className="text-gray-600 mb-6">{message}</p>
-              
+
               {transactionDetails && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                   <div className="space-y-2 text-sm">

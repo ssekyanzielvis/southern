@@ -1,7 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -98,7 +96,7 @@ export default function DonatePage() {
         .select('email, phone')
         .limit(1)
         .single();
-      
+
       if (data) {
         setFooterData(data);
       }
@@ -138,7 +136,7 @@ export default function DonatePage() {
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
-      
+
       if (data) {
         setPaymentNumbers(data);
       }
@@ -151,7 +149,7 @@ export default function DonatePage() {
     setSubmitting(true);
     try {
       const receiptNumber = generateReceiptNumber();
-      
+
       // Create donation record first
       const donationInsert: DonationInsert = {
         donor_name: data.donor_name,
@@ -172,7 +170,7 @@ export default function DonatePage() {
         .select();
 
       if (insertError) throw insertError;
-      
+
       const donationId = donationData[0].id;
 
       // Handle MTN or Airtel payment via API
@@ -202,7 +200,7 @@ export default function DonatePage() {
           }
 
           setTransactionReference(paymentResult.referenceId);
-          
+
           showNotification(
             `Payment prompt sent to your phone! Reference: ${paymentResult.referenceId}`,
             'success'
@@ -210,7 +208,7 @@ export default function DonatePage() {
 
           // Start checking payment status
           checkPaymentStatus(paymentResult.referenceId, data.payment_method);
-          
+
         } catch (paymentError: any) {
           console.error('Payment API error:', paymentError);
           showNotification(
@@ -250,7 +248,7 @@ export default function DonatePage() {
 
           // Redirect to Flutterwave payment page
           window.location.href = cardPaymentResult.paymentLink;
-          
+
         } catch (cardError: any) {
           console.error('Card payment error:', cardError);
           showNotification(
@@ -268,7 +266,7 @@ export default function DonatePage() {
         reset();
         setSubmitting(false);
       }
-      
+
     } catch (error: any) {
       console.error('Error processing donation:', error);
       showNotification(error.message || 'Failed to process donation. Please try again.', 'error');
@@ -279,7 +277,7 @@ export default function DonatePage() {
   const checkPaymentStatus = async (referenceId: string, provider: string) => {
     let attempts = 0;
     const maxAttempts = 12; // Check for up to 2 minutes (12 * 10 seconds)
-    
+
     const checkStatus = async () => {
       try {
         const response = await fetch('/api/payments/status', {
