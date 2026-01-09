@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,6 +46,19 @@ interface FooterData {
   phone: string | null;
 }
 
+// Define a type for the donation insert
+interface DonationInsert {
+  donor_name: string;
+  donor_email: string | null;
+  donor_phone: string;
+  amount: number;
+  payment_method: 'mtn' | 'airtel' | 'card' | 'manual';
+  payment_reference: string;
+  receipt_number: string;
+  receipt_generated: boolean;
+  payment_status: string;
+}
+
 export default function DonatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -51,6 +66,7 @@ export default function DonatePage() {
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   const [paymentNumbers, setPaymentNumbers] = useState<PaymentNumber[]>([]);
   const [footerData, setFooterData] = useState<FooterData | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const showNotification = useAppStore((state) => state.showNotification);
 
   const {
@@ -69,6 +85,7 @@ export default function DonatePage() {
   const paymentMethod = watch('payment_method');
 
   useEffect(() => {
+    setIsMounted(true);
     fetchPaymentSettings();
     fetchPaymentNumbers();
     fetchFooterData();
@@ -116,8 +133,8 @@ export default function DonatePage() {
 
   const fetchPaymentNumbers = async () => {
     try {
-      const { data } = await (supabase
-        .from('payment_numbers') as any)
+      const { data } = await supabase
+        .from('payment_numbers')
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
@@ -136,15 +153,23 @@ export default function DonatePage() {
       const receiptNumber = generateReceiptNumber();
       
       // Create donation record first
-      const { data: donationData, error: insertError } = await (supabase.from('donations') as any).insert([
-        {
-          ...data,
-          receipt_number: receiptNumber,
-          payment_reference: receiptNumber,
-          receipt_generated: false,
-          payment_status: 'pending',
-        },
-      ]).select();
+      const donationInsert: DonationInsert = {
+        donor_name: data.donor_name,
+        donor_email: data.donor_email || null,
+        donor_phone: data.donor_phone,
+        amount: data.amount,
+        payment_method: data.payment_method,
+        payment_reference: receiptNumber,
+        receipt_number: receiptNumber,
+        receipt_generated: false,
+        payment_status: 'pending',
+      };
+
+      // Use type assertion to bypass TypeScript error
+      const { data: donationData, error: insertError } = await (supabase
+        .from('donations') as any)
+        .insert([donationInsert])
+        .select();
 
       if (insertError) throw insertError;
       
@@ -193,6 +218,7 @@ export default function DonatePage() {
             'error'
           );
           setProcessingPayment(false);
+          setSubmitting(false);
         }
 
       } else if (data.payment_method === 'card') {
@@ -240,11 +266,12 @@ export default function DonatePage() {
           'success'
         );
         reset();
+        setSubmitting(false);
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing donation:', error);
-      showNotification('Failed to process donation. Please try again.', 'error');
+      showNotification(error.message || 'Failed to process donation. Please try again.', 'error');
       setSubmitting(false);
     }
   };
@@ -314,6 +341,18 @@ export default function DonatePage() {
     // Start checking after 5 seconds (give time for payment prompt)
     setTimeout(checkStatus, 5000);
   };
+
+  if (!isMounted) {
+    return (
+      <div className="w-full py-16 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="flex justify-center">
+            <LoadingSpinner size="lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full py-16 px-4">
@@ -548,24 +587,24 @@ export default function DonatePage() {
                       </ol>
                     </div>
                     {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('mtn')).length > 0 ? (
-                    <div className="space-y-2">
-                      <p className="font-semibold text-gray-900">Send payment to:</p>
-                      {paymentNumbers
-                        .filter(n => n.network_name.toLowerCase().includes('mtn'))
-                        .map((number) => (
-                          <div key={number.id} className="bg-white border border-yellow-300 rounded-lg p-3">
-                            <p className="text-lg font-bold text-blue-600">{number.phone_number}</p>
-                            <p className="text-sm text-gray-600">Name: {number.account_name}</p>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="bg-red-50 border border-red-200 rounded p-3">
-                      <p className="text-sm text-red-700">
-                        MTN payment number not configured. Please use another payment method or contact us.
-                      </p>
-                    </div>
-                  )}
+                      <div className="space-y-2">
+                        <p className="font-semibold text-gray-900">Send payment to:</p>
+                        {paymentNumbers
+                          .filter(n => n.network_name.toLowerCase().includes('mtn'))
+                          .map((number) => (
+                            <div key={number.id} className="bg-white border border-yellow-300 rounded-lg p-3">
+                              <p className="text-lg font-bold text-blue-600">{number.phone_number}</p>
+                              <p className="text-sm text-gray-600">Name: {number.account_name}</p>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="bg-red-50 border border-red-200 rounded p-3">
+                        <p className="text-sm text-red-700">
+                          MTN payment number not configured. Please use another payment method or contact us.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -612,24 +651,24 @@ export default function DonatePage() {
                       </ol>
                     </div>
                     {paymentNumbers.filter(n => n.network_name.toLowerCase().includes('airtel')).length > 0 ? (
-                    <div className="space-y-2">
-                      <p className="font-semibold text-gray-900">Send payment to:</p>
-                      {paymentNumbers
-                        .filter(n => n.network_name.toLowerCase().includes('airtel'))
-                        .map((number) => (
-                          <div key={number.id} className="bg-white border border-red-300 rounded-lg p-3">
-                            <p className="text-lg font-bold text-red-600">{number.phone_number}</p>
-                            <p className="text-sm text-gray-600">Name: {number.account_name}</p>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="bg-red-50 border border-red-200 rounded p-3">
-                      <p className="text-sm text-red-700">
-                        Airtel payment number not configured. Please use another payment method or contact us.
-                      </p>
-                    </div>
-                  )}
+                      <div className="space-y-2">
+                        <p className="font-semibold text-gray-900">Send payment to:</p>
+                        {paymentNumbers
+                          .filter(n => n.network_name.toLowerCase().includes('airtel'))
+                          .map((number) => (
+                            <div key={number.id} className="bg-white border border-red-300 rounded-lg p-3">
+                              <p className="text-lg font-bold text-red-600">{number.phone_number}</p>
+                              <p className="text-sm text-gray-600">Name: {number.account_name}</p>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="bg-red-50 border border-red-200 rounded p-3">
+                        <p className="text-sm text-red-700">
+                          Airtel payment number not configured. Please use another payment method or contact us.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

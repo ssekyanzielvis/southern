@@ -1,10 +1,10 @@
-'export const dynamic = "force-dynamic";'
-'export const dynamic = "force-dynamic";'
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function VerifyPaymentPage() {
@@ -13,8 +13,10 @@ export default function VerifyPaymentPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [message, setMessage] = useState('Verifying your payment...');
   const [transactionDetails, setTransactionDetails] = useState<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     verifyPayment();
   }, []);
 
@@ -22,16 +24,16 @@ export default function VerifyPaymentPage() {
     try {
       const transactionId = searchParams.get('transaction_id');
       const txRef = searchParams.get('tx_ref');
-      const status = searchParams.get('status');
+      const statusParam = searchParams.get('status');
 
-      if (!transactionId) {
+      if (!transactionId && !txRef) {
         setStatus('failed');
         setMessage('Invalid payment verification link');
         return;
       }
 
       // If status is already cancelled/failed
-      if (status === 'cancelled' || status === 'failed') {
+      if (statusParam === 'cancelled' || statusParam === 'failed') {
         setStatus('failed');
         setMessage('Payment was cancelled or failed. Please try again.');
         return;
@@ -57,16 +59,31 @@ export default function VerifyPaymentPage() {
         }, 5000);
       } else {
         setStatus('failed');
-        setMessage('Payment verification failed. Please contact support if amount was deducted.');
+        setMessage(result.message || 'Payment verification failed. Please contact support if amount was deducted.');
         setTransactionDetails(result);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Verification error:', error);
       setStatus('failed');
-      setMessage('An error occurred during verification. Please contact support.');
+      setMessage(error.message || 'An error occurred during verification. Please contact support.');
     }
   };
+
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <LoadingSpinner size="lg" />
+            </div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -100,17 +117,19 @@ export default function VerifyPaymentPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Amount:</span>
                       <span className="font-semibold text-green-700">
-                        {transactionDetails.currency} {transactionDetails.amount?.toLocaleString()}
+                        {transactionDetails.currency || 'UGX'} {transactionDetails.amount?.toLocaleString() || '0'}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Reference:</span>
-                      <span className="font-semibold">{transactionDetails.reference}</span>
+                      <span className="font-semibold">{transactionDetails.reference || transactionDetails.tx_ref}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Transaction ID:</span>
-                      <span className="font-mono text-xs">{transactionDetails.transactionId}</span>
-                    </div>
+                    {transactionDetails.transactionId && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Transaction ID:</span>
+                        <span className="font-mono text-xs">{transactionDetails.transactionId}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
