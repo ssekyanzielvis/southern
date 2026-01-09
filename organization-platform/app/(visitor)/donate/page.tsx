@@ -21,9 +21,13 @@ const donationSchema = z.object({
 type DonationFormData = z.infer<typeof donationSchema>;
 
 interface PaymentSettings {
-  mobile_money_number: string | null;
-  mobile_money_name: string | null;
-  mobile_money_network: string | null;
+  id: string;
+  mtn_number: string | null;
+  mtn_name: string | null;
+  airtel_number: string | null;
+  airtel_name: string | null;
+  manual_payment_instructions: string | null;
+  updated_at: string | null;
 }
 
 interface PaymentNumber {
@@ -88,16 +92,25 @@ export default function DonatePage() {
 
   const fetchPaymentSettings = async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('payment_settings')
         .select('*')
-        .single();
-      
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) {
+        console.error('Error fetching payment settings:', error);
+        setPaymentSettings(null);
+        return;
+      }
       if (data) {
         setPaymentSettings(data);
+      } else {
+        setPaymentSettings(null);
       }
     } catch (error) {
       console.error('Error fetching payment settings:', error);
+      setPaymentSettings(null);
     }
   };
 
@@ -309,6 +322,39 @@ export default function DonatePage() {
         <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
           Your generosity helps us continue our mission to create positive change in the community.
         </p>
+
+        {/* Payment Settings Display */}
+        {paymentSettings && (
+          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-4 text-blue-800">Payment Numbers & Instructions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h3 className="font-semibold text-lg text-yellow-700 mb-2">MTN Mobile Money</h3>
+                {paymentSettings.mtn_number ? (
+                  <>
+                    <p className="text-base text-gray-900 font-bold">Number: <span className="text-blue-700">{paymentSettings.mtn_number}</span></p>
+                    {paymentSettings.mtn_name && <p className="text-sm text-gray-700">Name: {paymentSettings.mtn_name}</p>}
+                  </>
+                ) : <p className="text-sm text-gray-500">Not configured</p>}
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-red-700 mb-2">Airtel Money</h3>
+                {paymentSettings.airtel_number ? (
+                  <>
+                    <p className="text-base text-gray-900 font-bold">Number: <span className="text-red-700">{paymentSettings.airtel_number}</span></p>
+                    {paymentSettings.airtel_name && <p className="text-sm text-gray-700">Name: {paymentSettings.airtel_name}</p>}
+                  </>
+                ) : <p className="text-sm text-gray-500">Not configured</p>}
+              </div>
+            </div>
+            {paymentSettings.manual_payment_instructions && (
+              <div className="mt-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
+                <h4 className="font-semibold mb-2">Manual Payment Instructions</h4>
+                <p className="text-sm text-gray-800">{paymentSettings.manual_payment_instructions}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <div className="bg-blue-50 rounded-lg p-6 text-center">
@@ -684,18 +730,37 @@ export default function DonatePage() {
             )}
 
             {/* Fallback if no payment numbers */}
-            {paymentMethod === 'manual' && paymentNumbers.length === 0 && paymentSettings?.mobile_money_number && (
+            {paymentMethod === 'manual' && paymentNumbers.length === 0 && paymentSettings && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Payment Instructions</h3>
                 <p className="text-sm text-gray-700 mb-2">
                   Please send your donation to:
                 </p>
-                <p className="text-sm font-semibold">
-                  {paymentSettings.mobile_money_network}: {paymentSettings.mobile_money_number}
-                </p>
-                <p className="text-sm text-gray-700">
-                  Name: {paymentSettings.mobile_money_name}
-                </p>
+                {paymentSettings.mtn_number && (
+                  <p className="text-sm font-semibold">
+                    MTN: {paymentSettings.mtn_number}
+                  </p>
+                )}
+                {paymentSettings.mtn_name && (
+                  <p className="text-sm text-gray-700">
+                    Name: {paymentSettings.mtn_name}
+                  </p>
+                )}
+                {paymentSettings.airtel_number && (
+                  <p className="text-sm font-semibold mt-2">
+                    Airtel: {paymentSettings.airtel_number}
+                  </p>
+                )}
+                {paymentSettings.airtel_name && (
+                  <p className="text-sm text-gray-700">
+                    Name: {paymentSettings.airtel_name}
+                  </p>
+                )}
+                {paymentSettings.manual_payment_instructions && (
+                  <p className="text-sm text-gray-700 mt-2">
+                    {paymentSettings.manual_payment_instructions}
+                  </p>
+                )}
                 <p className="text-sm text-gray-700 mt-2">
                   After payment, submit this form to record your donation.
                 </p>
