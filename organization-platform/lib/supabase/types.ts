@@ -1,3 +1,4 @@
+// Supabase types for southern organization platform
 export interface Database {
   public: {
     Tables: {
@@ -34,6 +35,105 @@ export interface Database {
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
+        };
+      };
+      staff_applications: {
+        Row: {
+          id: string;
+          full_name: string;
+          email: string;
+          phone: string;
+          nationality: string;
+          sex: string;
+          dob: string;
+          is_approved: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          full_name: string;
+          email: string;
+          phone: string;
+          nationality: string;
+          sex: string;
+          dob: string;
+          is_approved?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string;
+          email?: string;
+          phone?: string;
+          nationality?: string;
+          sex?: string;
+          dob?: string;
+          is_approved?: boolean;
+          created_at?: string;
+        };
+      };
+      volunteer_applications: {
+        Row: {
+          id: string;
+          full_name: string;
+          email: string;
+          phone: string;
+          address: string;
+          skills: string;
+          is_approved: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          full_name: string;
+          email: string;
+          phone: string;
+          address: string;
+          skills: string;
+          is_approved?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string;
+          email?: string;
+          phone?: string;
+          address?: string;
+          skills?: string;
+          is_approved?: boolean;
+          created_at?: string;
+        };
+      };
+      partner_applications: {
+        Row: {
+          id: string;
+          full_name: string;
+          organization_name: string;
+          offer: string;
+          email: string;
+          nationality: string;
+          is_approved: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          full_name: string;
+          organization_name: string;
+          offer: string;
+          email: string;
+          nationality: string;
+          is_approved?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string;
+          organization_name?: string;
+          offer?: string;
+          email?: string;
+          nationality?: string;
+          is_approved?: boolean;
+          created_at?: string;
         };
       };
       site_settings: {
@@ -633,4 +733,3 @@ export interface Database {
     Enums: Record<string, never>;
   };
 }
-

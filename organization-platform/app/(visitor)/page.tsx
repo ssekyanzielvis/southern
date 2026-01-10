@@ -275,15 +275,13 @@ export default function HomePage() {
         <section className="py-16 px-4 bg-gray-50">
           <div className="container mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our Achievements</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 max-w-7xl mx-auto">
-              {achievements.map((achievement) => (
-                <ImageCard
-                  key={achievement.id}
-                  imageUrl={achievement.image_url}
-                  title={achievement.title}
-                  description={achievement.description}
-                />
-              ))}
+            <div className="grid grid-cols-1 gap-8 mb-8 max-w-3xl mx-auto">
+              <ImageCard
+                key={achievements[0].id}
+                imageUrl={achievements[0].image_url}
+                title={achievements[0].title}
+                description={achievements[0].description}
+              />
             </div>
             <div className="text-center">
               <Link

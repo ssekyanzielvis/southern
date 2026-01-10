@@ -117,10 +117,10 @@ export default function Footer() {
             )}
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links & Applications */}
           <div>
             <h3 className="text-xl font-bold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 mb-6">
               <li>
                 <a href="/about" className="text-sm hover:underline">
                   About Us
@@ -141,7 +141,23 @@ export default function Footer() {
                   Donate Now
                 </a>
               </li>
+              <li>
+                <a href="/staff" className="text-sm hover:underline font-semibold text-blue-200">
+                  View Staff Members
+                </a>
+                <a href="/volunteers" className="text-sm hover:underline font-semibold text-green-200 ml-4">
+                  View Volunteers
+                </a>
+                <a href="/partners" className="text-sm hover:underline font-semibold text-purple-200 ml-4">
+                  View Partners
+                </a>
+              </li>
             </ul>
+            <div className="flex flex-col gap-3">
+              <a href="/apply/staff" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors text-center">Become a Staff Member</a>
+              <a href="/apply/volunteer" className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors text-center">Become a Volunteer</a>
+              <a href="/apply/partner" className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors text-center">Become a Partner</a>
+            </div>
           </div>
         </div>
 
