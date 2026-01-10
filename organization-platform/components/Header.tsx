@@ -40,6 +40,10 @@ export default function Header() {
     { href: '/leadership', label: 'Leadership' },
     { href: '/contact', label: 'Contact' },
     { href: '/donate', label: 'Donate' },
+    // Admin links
+    { href: '/admin/staff', label: 'Admin: Staff', admin: true },
+    { href: '/admin/volunteers', label: 'Admin: Volunteers', admin: true },
+    { href: '/admin/partners', label: 'Admin: Partners', admin: true },
   ];
 
   return (
@@ -73,7 +77,7 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-4 py-2 rounded-md text-white hover:bg-white/10 transition-colors duration-200 font-medium"
+                className={`px-4 py-2 rounded-md text-white hover:bg-white/10 transition-colors duration-200 font-medium ${link.admin ? 'bg-gray-900/60 ml-2' : ''}`}
               >
                 {link.label}
               </Link>
@@ -98,7 +102,7 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMenuOpen(false)}
-                className="block px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200 font-medium"
+                className={`block px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200 font-medium ${link.admin ? 'bg-gray-900/60 mt-2' : ''}`}
               >
                 {link.label}
               </Link>
