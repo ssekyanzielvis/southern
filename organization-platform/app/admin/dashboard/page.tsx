@@ -146,6 +146,10 @@ export default function AdminDashboard() {
     { name: 'Upload to Gallery', href: '/admin/gallery', icon: Image, color: 'bg-purple-600' },
     { name: 'Create News', href: '/admin/news', icon: Newspaper, color: 'bg-green-600' },
     { name: 'Add Leader', href: '/admin/leadership', icon: Users, color: 'bg-orange-600' },
+    // Admin management buttons
+    { name: 'Manage Staff', href: '/admin/staff', icon: Users, color: 'bg-blue-800' },
+    { name: 'Manage Volunteers', href: '/admin/volunteers', icon: Users, color: 'bg-green-800' },
+    { name: 'Manage Partners', href: '/admin/partners', icon: Users, color: 'bg-purple-800' },
   ];
 
   return (
