@@ -4,18 +4,44 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle } from 'lucide-react';
 
-// Main content component that uses useSearchParams
+// Loading spinner component
+function LoadingSpinner({ size = 'lg' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-8 h-8', 
+    lg: 'w-12 h-12'
+  };
+  
+  return (
+    <div className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${sizeClasses[size]}`} />
+  );
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md w-full">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="flex justify-center mb-4">
+            <LoadingSpinner size="lg" />
+          </div>
+          <p className="text-gray-600">Loading payment verification...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Component that uses useSearchParams - will be wrapped in Suspense
 function VerifyPaymentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [message, setMessage] = useState('Verifying your payment...');
   const [transactionDetails, setTransactionDetails] = useState<any>(null);
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    
     const verifyPayment = async () => {
       try {
         const transactionId = searchParams.get('transaction_id');
@@ -66,20 +92,8 @@ function VerifyPaymentContent() {
     verifyPayment();
   }, [searchParams, router]);
 
-  // Inline loading spinner component
-  const LoadingSpinner = ({ size = 'lg' }: { size?: 'sm' | 'md' | 'lg' }) => {
-    const sizeClasses = {
-      sm: 'w-4 h-4',
-      md: 'w-8 h-8', 
-      lg: 'w-12 h-12'
-    };
-    
-    return (
-      <div className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${sizeClasses[size]}`} />
-    );
-  };
-
-  if (!isMounted) {
+  // Render loading state
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full">
@@ -87,30 +101,22 @@ function VerifyPaymentContent() {
             <div className="flex justify-center mb-4">
               <LoadingSpinner size="lg" />
             </div>
-            <p className="text-gray-600">Loading...</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Verifying Payment
+            </h2>
+            <p className="text-gray-600">{message}</p>
           </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          {status === 'loading' && (
-            <div className="text-center">
-              <div className="flex justify-center mb-4">
-                <LoadingSpinner size="lg" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Verifying Payment
-              </h2>
-              <p className="text-gray-600">{message}</p>
-            </div>
-          )}
-
-          {status === 'success' && (
+  // Render success state
+  if (status === 'success') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <CheckCircle className="w-16 h-16 text-green-500" />
@@ -153,81 +159,63 @@ function VerifyPaymentContent() {
                 Return to Home
               </button>
             </div>
-          )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-          {status === 'failed' && (
-            <div className="text-center">
-              <div className="flex justify-center mb-4">
-                <XCircle className="w-16 h-16 text-red-500" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Payment Failed
-              </h2>
-              <p className="text-gray-600 mb-6">{message}</p>
-
-              {transactionDetails?.reference && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-red-700">
-                    Reference: <span className="font-semibold">{transactionDetails.reference}</span>
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <button
-                  onClick={() => router.push('/donate')}
-                  className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Try Again
-                </button>
-                <button
-                  onClick={() => router.push('/contact')}
-                  className="w-full bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Contact Support
-                </button>
-              </div>
+  // Render failed state
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md w-full">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-4">
+              <XCircle className="w-16 h-16 text-red-500" />
             </div>
-          )}
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Payment Failed
+            </h2>
+            <p className="text-gray-600 mb-6">{message}</p>
+
+            {transactionDetails?.reference && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-red-700">
+                  Reference: <span className="font-semibold">{transactionDetails.reference}</span>
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/donate')}
+                className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => router.push('/contact')}
+                className="w-full bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Contact Support
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// Main page component with Suspense
+// Main page component - wraps the content in Suspense
 export default function VerifyPaymentPage() {
-  // Inline loading spinner for Suspense fallback
-  const LoadingSpinner = ({ size = 'lg' }: { size?: 'sm' | 'md' | 'lg' }) => {
-    const sizeClasses = {
-      sm: 'w-4 h-4',
-      md: 'w-8 h-8', 
-      lg: 'w-12 h-12'
-    };
-    
-    return (
-      <div className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${sizeClasses[size]}`} />
-    );
-  };
-
   return (
-    <Suspense 
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full">
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-              <div className="flex justify-center mb-4">
-                <LoadingSpinner size="lg" />
-              </div>
-              <p className="text-gray-600">Loading payment verification...</p>
-            </div>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingFallback />}>
       <VerifyPaymentContent />
     </Suspense>
   );
 }
 
+// Force dynamic rendering
 export const dynamic = 'force-dynamic';
