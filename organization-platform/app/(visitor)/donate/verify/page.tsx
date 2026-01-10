@@ -1,13 +1,11 @@
-
-export const dynamic = "force-dynamic";
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle } from 'lucide-react';
-import LoadingSpinner from '@/components/LoadingSpinner';
 
-export default function VerifyPaymentPage() {
+// Main content component that uses useSearchParams
+function VerifyPaymentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
@@ -17,57 +15,68 @@ export default function VerifyPaymentPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    
+    const verifyPayment = async () => {
+      try {
+        const transactionId = searchParams.get('transaction_id');
+        const txRef = searchParams.get('tx_ref');
+        const statusParam = searchParams.get('status');
+
+        if (!transactionId && !txRef) {
+          setStatus('failed');
+          setMessage('Invalid payment verification link');
+          return;
+        }
+
+        if (statusParam === 'cancelled' || statusParam === 'failed') {
+          setStatus('failed');
+          setMessage('Payment was cancelled or failed. Please try again.');
+          return;
+        }
+
+        const response = await fetch('/api/payments/card/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transactionId, txRef }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.status === 'success') {
+          setStatus('success');
+          setMessage('Payment successful! Thank you for your donation.');
+          setTransactionDetails(result);
+
+          setTimeout(() => {
+            router.push('/');
+          }, 5000);
+        } else {
+          setStatus('failed');
+          setMessage(result.message || 'Payment verification failed. Please contact support if amount was deducted.');
+          setTransactionDetails(result);
+        }
+
+      } catch (error: any) {
+        console.error('Verification error:', error);
+        setStatus('failed');
+        setMessage(error.message || 'An error occurred during verification. Please contact support.');
+      }
+    };
+
     verifyPayment();
-  }, []);
+  }, [searchParams, router]);
 
-  const verifyPayment = async () => {
-    try {
-      const transactionId = searchParams.get('transaction_id');
-      const txRef = searchParams.get('tx_ref');
-      const statusParam = searchParams.get('status');
-
-      if (!transactionId && !txRef) {
-        setStatus('failed');
-        setMessage('Invalid payment verification link');
-        return;
-      }
-
-      // If status is already cancelled/failed
-      if (statusParam === 'cancelled' || statusParam === 'failed') {
-        setStatus('failed');
-        setMessage('Payment was cancelled or failed. Please try again.');
-        return;
-      }
-
-      // Verify with backend
-      const response = await fetch('/api/payments/card/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactionId, txRef }),
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.status === 'success') {
-        setStatus('success');
-        setMessage('Payment successful! Thank you for your donation.');
-        setTransactionDetails(result);
-
-        // Redirect to home after 5 seconds
-        setTimeout(() => {
-          router.push('/');
-        }, 5000);
-      } else {
-        setStatus('failed');
-        setMessage(result.message || 'Payment verification failed. Please contact support if amount was deducted.');
-        setTransactionDetails(result);
-      }
-
-    } catch (error: any) {
-      console.error('Verification error:', error);
-      setStatus('failed');
-      setMessage(error.message || 'An error occurred during verification. Please contact support.');
-    }
+  // Inline loading spinner component
+  const LoadingSpinner = ({ size = 'lg' }: { size?: 'sm' | 'md' | 'lg' }) => {
+    const sizeClasses = {
+      sm: 'w-4 h-4',
+      md: 'w-8 h-8', 
+      lg: 'w-12 h-12'
+    };
+    
+    return (
+      <div className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${sizeClasses[size]}`} />
+    );
   };
 
   if (!isMounted) {
@@ -185,3 +194,40 @@ export default function VerifyPaymentPage() {
     </div>
   );
 }
+
+// Main page component with Suspense
+export default function VerifyPaymentPage() {
+  // Inline loading spinner for Suspense fallback
+  const LoadingSpinner = ({ size = 'lg' }: { size?: 'sm' | 'md' | 'lg' }) => {
+    const sizeClasses = {
+      sm: 'w-4 h-4',
+      md: 'w-8 h-8', 
+      lg: 'w-12 h-12'
+    };
+    
+    return (
+      <div className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${sizeClasses[size]}`} />
+    );
+  };
+
+  return (
+    <Suspense 
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+          <div className="max-w-md w-full">
+            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+              <div className="flex justify-center mb-4">
+                <LoadingSpinner size="lg" />
+              </div>
+              <p className="text-gray-600">Loading payment verification...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <VerifyPaymentContent />
+    </Suspense>
+  );
+}
+
+export const dynamic = 'force-dynamic';
