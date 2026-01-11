@@ -62,8 +62,9 @@ export default function NewsPage() {
               <ImageCard
                 imageUrl={item.image_url}
                 title={item.title}
-                description={<TruncatedText text={item.description} />}
+                description={item.description}
               />
+              <TruncatedText text={item.description} />
               <p className="text-sm text-gray-500 text-center">
                 {formatDate(item.published_date)}
               </p>

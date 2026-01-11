@@ -62,8 +62,9 @@ export default function AchievementsPage() {
               <ImageCard
                 imageUrl={achievement.image_url}
                 title={achievement.title}
-                description={<TruncatedText text={achievement.description} />}
+                description={achievement.description}
               />
+              <TruncatedText text={achievement.description} />
               <p className="text-sm text-gray-500 text-center">
                 {formatDate(achievement.achievement_date)}
               </p>
