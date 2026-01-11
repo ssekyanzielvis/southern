@@ -132,6 +132,11 @@ export default function Footer() {
                 </a>
               </li>
               <li>
+                <a href="/achievements" className="text-sm hover:underline">
+                  Achievements
+                </a>
+              </li>
+              <li>
                 <a href="/gallery" className="text-sm hover:underline">
                   Gallery
                 </a>
