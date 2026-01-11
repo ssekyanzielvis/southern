@@ -25,11 +25,15 @@ interface Stats {
   donations: number;
   donationAmount: number;
   leaders: number;
+  staff: number;
+  volunteers: number;
+  partners: number;
 }
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     fetchStats();
@@ -45,6 +49,9 @@ export default function AdminDashboard() {
         contacts,
         donations,
         leaders,
+        staff,
+        volunteers,
+        partners,
       ] = await Promise.all([
         (supabase.from('programs') as any).select('id', { count: 'exact', head: true }),
         (supabase.from('achievements') as any).select('id', { count: 'exact', head: true }),
@@ -53,6 +60,9 @@ export default function AdminDashboard() {
         (supabase.from('contact_submissions') as any).select('id', { count: 'exact', head: true }),
         (supabase.from('donations') as any).select('amount'),
         (supabase.from('leadership') as any).select('id', { count: 'exact', head: true }),
+        (supabase.from('staff') as any).select('id', { count: 'exact', head: true }).eq('is_active', true),
+        (supabase.from('volunteers') as any).select('id', { count: 'exact', head: true }).eq('is_active', true),
+        (supabase.from('partners') as any).select('id', { count: 'exact', head: true }).eq('is_active', true),
       ]);
 
       const totalDonations = donations.data?.reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0;
@@ -66,6 +76,9 @@ export default function AdminDashboard() {
         donations: donations.data?.length || 0,
         donationAmount: totalDonations,
         leaders: leaders.count || 0,
+        staff: staff.count || 0,
+        volunteers: volunteers.count || 0,
+        partners: partners.count || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -83,6 +96,27 @@ export default function AdminDashboard() {
   }
 
   const statCards = [
+    {
+      name: 'Staff Members',
+      value: stats?.staff || 0,
+      icon: Users,
+      color: 'bg-blue-800',
+      link: '/admin/staff',
+    },
+    {
+      name: 'Volunteers',
+      value: stats?.volunteers || 0,
+      icon: Users,
+      color: 'bg-green-800',
+      link: '/admin/volunteers',
+    },
+    {
+      name: 'Partners',
+      value: stats?.partners || 0,
+      icon: Users,
+      color: 'bg-purple-800',
+      link: '/admin/partners',
+    },
     {
       name: 'Total Programs',
       value: stats?.programs || 0,
