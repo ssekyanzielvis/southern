@@ -5,13 +5,14 @@ import { supabase } from "@/lib/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-export default function VolunteerApplicationPage() {
+export default function StaffApplicationPage() {
   const [form, setForm] = useState({
     full_name: "",
     email: "",
     phone: "",
-    address: "",
-    skills: "",
+    nationality: "",
+    sex: "",
+    dob: "",
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -27,31 +28,31 @@ export default function VolunteerApplicationPage() {
     setError("");
     setSuccess(false);
     
-    const { full_name, email, phone, address, skills } = form;
-    if (!full_name || !email || !phone || !address || !skills) {
+    const { full_name, email, phone, nationality, sex, dob } = form;
+    if (!full_name || !email || !phone || !nationality || !sex || !dob) {
       setError("Please fill in all fields.");
       setLoading(false);
       return;
     }
 
     try {
-      // Type assertion to bypass TypeScript checking temporarily
       const { error } = await supabase
-        .from("volunteer_applications")
+        .from("staff_applications")
         .insert({
           full_name,
           email,
           phone,
-          address,
-          skills
-        } as any); // Using 'as any' to bypass type checking
+          nationality,
+          sex,
+          dob
+        } as any);
 
       if (error) {
         console.error("Supabase error:", error);
         setError("Submission failed. Please try again.");
       } else {
         setSuccess(true);
-        setForm({ full_name: "", email: "", phone: "", address: "", skills: "" });
+        setForm({ full_name: "", email: "", phone: "", nationality: "", sex: "", dob: "" });
       }
     } catch (err) {
       console.error("Submission error:", err);
@@ -102,21 +103,33 @@ export default function VolunteerApplicationPage() {
               />
             </div>
             <div>
-              <label className="block mb-2 font-semibold">Home Address</label>
+              <label className="block mb-2 font-semibold">Nationality</label>
               <input 
                 type="text" 
-                name="address" 
-                value={form.address} 
+                name="nationality" 
+                value={form.nationality} 
                 onChange={handleChange} 
                 className="w-full border rounded px-3 py-2" 
                 required 
               />
             </div>
             <div>
-              <label className="block mb-2 font-semibold">Skills</label>
-              <textarea 
-                name="skills" 
-                value={form.skills} 
+              <label className="block mb-2 font-semibold">Gender</label>
+              <input 
+                type="text" 
+                name="sex" 
+                value={form.sex} 
+                onChange={handleChange} 
+                className="w-full border rounded px-3 py-2" 
+                required 
+              />
+            </div>
+            <div>
+              <label className="block mb-2 font-semibold">Date of Birth</label>
+              <input 
+                type="date" 
+                name="dob" 
+                value={form.dob} 
                 onChange={handleChange} 
                 className="w-full border rounded px-3 py-2" 
                 required 
