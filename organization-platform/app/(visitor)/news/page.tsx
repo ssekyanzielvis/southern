@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ImageCard from '@/components/ImageCard';
+import TruncatedText from '@/components/TruncatedText';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { supabase } from '@/lib/supabase/client';
 import { formatDate } from '@/lib/utils';
@@ -61,7 +62,7 @@ export default function NewsPage() {
               <ImageCard
                 imageUrl={item.image_url}
                 title={item.title}
-                description={item.description}
+                description={<TruncatedText text={item.description} />}
               />
               <p className="text-sm text-gray-500 text-center">
                 {formatDate(item.published_date)}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ImageCard from '@/components/ImageCard';
+import TruncatedText from '@/components/TruncatedText';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { supabase } from '@/lib/supabase/client';
 import { formatDate } from '@/lib/utils';
@@ -61,7 +62,7 @@ export default function AchievementsPage() {
               <ImageCard
                 imageUrl={achievement.image_url}
                 title={achievement.title}
-                description={achievement.description}
+                description={<TruncatedText text={achievement.description} />}
               />
               <p className="text-sm text-gray-500 text-center">
                 {formatDate(achievement.achievement_date)}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ImageCard from '@/components/ImageCard';
+import TruncatedText from '@/components/TruncatedText';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { supabase } from '@/lib/supabase/client';
 
@@ -59,7 +60,7 @@ export default function ProgramsPage() {
               key={program.id}
               imageUrl={program.image_url}
               title={program.title}
-              description={program.description}
+              description={<TruncatedText text={program.description} />}
             />
           ))}
         </div>

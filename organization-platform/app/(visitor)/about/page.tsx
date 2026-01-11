@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import TruncatedText from '@/components/TruncatedText';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { supabase } from '@/lib/supabase/client';
 
@@ -109,7 +110,7 @@ export default function AboutPage() {
               )}
               <div className={`w-full ${item.image_url ? 'md:w-1/2' : 'md:w-full'}`}>
                 <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-line">
-                  {item.description}
+                  <TruncatedText text={item.description} />
                 </p>
               </div>
             </div>
@@ -135,7 +136,7 @@ export default function AboutPage() {
               )}
               <div className={`w-full ${vision.image_url ? 'md:w-1/2' : 'md:w-full'} bg-blue-50 p-8 rounded-lg`}>
                 <p className="text-xl text-gray-800 leading-relaxed whitespace-pre-line">
-                  {vision.statement}
+                  <TruncatedText text={vision.statement} />
                 </p>
               </div>
             </div>
@@ -161,7 +162,7 @@ export default function AboutPage() {
               )}
               <div className={`w-full ${mission.image_url ? 'md:w-1/2' : 'md:w-full'} bg-green-50 p-8 rounded-lg`}>
                 <p className="text-xl text-gray-800 leading-relaxed whitespace-pre-line">
-                  {mission.statement}
+                  <TruncatedText text={mission.statement} />
                 </p>
               </div>
             </div>
@@ -192,7 +193,7 @@ export default function AboutPage() {
                   )}
                   <div className={`w-full ${objective.image_url ? 'md:w-2/3' : 'md:w-full'}`}>
                     <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-line">
-                      {objective.statement}
+                      <TruncatedText text={objective.statement} />
                     </p>
                   </div>
                 </div>
