@@ -66,7 +66,7 @@ export default function VolunteerApplicationPage() {
       <Header />
       <main className="min-h-screen bg-gray-50">
         <div className="max-w-xl mx-auto py-16 px-4">
-          <h1 className="text-3xl font-bold mb-6 text-center">Become a Volunteer</h1>
+          <h1 className="text-3xl font-bold mb-6 text-center">Become a Staff Member</h1>
           <form className="space-y-6 bg-white p-8 rounded-lg shadow-lg" onSubmit={handleSubmit}>
             <div>
               <label className="block mb-2 font-semibold">Full Name</label>
